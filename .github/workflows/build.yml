@@ -12,12 +12,8 @@ permissions:
 
 jobs:
 
-  # ─────────────────────────────────────────────
-  # 🪟 WINDOWS BUILD
-  # ─────────────────────────────────────────────
   build-windows:
     runs-on: windows-latest
-
     steps:
       - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
@@ -50,12 +46,8 @@ jobs:
             release/*.zip
 
 
-  # ─────────────────────────────────────────────
-  # 🍎 MAC BUILD
-  # ─────────────────────────────────────────────
   build-mac:
     runs-on: macos-latest
-
     steps:
       - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
@@ -65,6 +57,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+
+      # ✅ CI fix for hdiutil detach problems
+      - name: 🧹 Unmount leftover DMGs
+        run: |
+          sudo hdiutil detach -all -quiet || true
+          sleep 2
 
       - name: 🧹 Clean Electron Cache
         run: |
@@ -79,10 +77,16 @@ jobs:
           retry_wait_seconds: 30
           command: npm ci
 
-      - name: 🏗️ Build Mac App (Ad-hoc Signed)
-        run: npm run electron:build:mac:ci
+      # ✅ Retry whole build command
+      - name: 🏗️ Build Mac App (with retry)
+        uses: nick-fields/retry@v3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          retry_wait_seconds: 60
+          command: npm run electron:build:mac:ci
 
       - name: ✅ Verify Ad-hoc Signature
         run: |
@@ -102,12 +106,8 @@ jobs:
             release/*.zip
 
 
-  # ─────────────────────────────────────────────
-  # 🐧 LINUX BUILD
-  # ─────────────────────────────────────────────
   build-linux:
     runs-on: ubuntu-latest
-
     steps:
       - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
@@ -151,21 +151,15 @@ jobs:
             release/*.rpm
 
 
-  # ─────────────────────────────────────────────
-  # 🚀 CREATE RELEASE
-  # ─────────────────────────────────────────────
   create-release:
     needs:
       - build-windows
       - build-mac
       - build-linux
-
     runs-on: ubuntu-latest
-
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-
       - name: ⬇️ Download Windows Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -186,74 +180,14 @@ jobs:
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v2
-
         with:
           tag_name: ${{ github.ref_name }}
-
           name: GymPro Admin ${{ github.ref_name }}
-
-          body: |
-            ## 📦 GymPro Admin Downloads
-
-            ---
-
-            ### 🍎 macOS
-
-            **Download the correct file for your Mac:**
-            - **Apple Silicon (M1/M2/M3):** `GymPro Admin-x.x.x-mac-arm64.dmg`
-            - **Intel Mac:** `GymPro Admin-x.x.x-mac-x64.dmg`
-
-            **Installation:**
-            1. Open the DMG file
-            2. Drag **GymPro Admin** to **Applications** folder
-            3. Open **Applications** folder
-            4. **Right-click** on GymPro Admin → Click **"Open"**
-            5. Click **"Open"** in the warning dialog
-            6. ✅ App will launch
-
-            **If app still does not open, run this in Terminal:**
-            ```
-            sudo xattr -cr /Applications/GymPro\ Admin.app
-            ```
-            Then open app again.
-
-            ---
-
-            ### 🪟 Windows
-
-            - **Installer:** `GymPro Admin Setup x.x.x.exe`
-            - **Portable:** `GymPro Admin x.x.x.exe`
-
-            If SmartScreen warning appears:
-            **More Info → Run Anyway**
-
-            ---
-
-            ### 🐧 Linux
-
-            **AppImage:**
-            ```
-            chmod +x GymPro-Admin-x.x.x.AppImage
-            ./GymPro-Admin-x.x.x.AppImage
-            ```
-
-            **Debian / Ubuntu:**
-            ```
-            sudo dpkg -i gym-admin_x.x.x_amd64.deb
-            ```
-
-            **Fedora / RHEL:**
-            ```
-            sudo rpm -i gym-admin-x.x.x.x86_64.rpm
-            ```
-
           files: |
             artifacts/windows/**/*
             artifacts/mac/**/*
             artifacts/linux/**/*
-
           draft: false
           prerelease: false
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

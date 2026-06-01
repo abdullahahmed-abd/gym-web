@@ -191,7 +191,7 @@ function App() {
             />
 
             <Route
-              path="/members-profile"
+              path="/member-profile"
               element={
                 <ProtectedRoute isLoggedIn={isLoggedIn}>
                   <MembersProfile {...sharedProps} />

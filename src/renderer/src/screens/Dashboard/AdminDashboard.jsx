@@ -151,7 +151,8 @@ const StatCard = ({ icon: Icon, label, value, change, sub, color, pulse }) => (
                       transition-all duration-300 group-hover:text-[34px]">
           {typeof value === 'number' ? <AnimatedNumber value={value} /> : value}
         </p>
-        <p className="font-rajdhani text-zinc-600 text-[11px] tracking-[0.15em] uppercase font-semibold">
+        {/* ✅ FIXED: was text-zinc-600 → now text-zinc-300 */}
+        <p className="font-rajdhani text-zinc-300 text-[11px] tracking-[0.15em] uppercase font-semibold">
           {label}
         </p>
       </div>
@@ -161,8 +162,9 @@ const StatCard = ({ icon: Icon, label, value, change, sub, color, pulse }) => (
         <>
           <div className="h-px bg-gradient-to-r from-white/[0.05] via-white/[0.1] to-white/[0.05] mb-3" />
           <div className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full" style={{ backgroundColor: `${color}60` }} />
-            <span className="font-rajdhani text-zinc-700 text-[10px] tracking-[0.1em] uppercase">
+            <div className="w-1 h-1 rounded-full" style={{ backgroundColor: `${color}80` }} />
+            {/* ✅ FIXED: was text-zinc-700 → now text-zinc-400 */}
+            <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase font-medium">
               {sub}
             </span>
           </div>
@@ -202,19 +204,20 @@ const TierBadge = ({ icon: Icon, label, count, color, total }) => {
           <span className="font-orbitron text-white font-bold text-[20px]">{count}</span>
           <span
             className="font-rajdhani text-[11px] tracking-[0.15em] uppercase font-bold"
-            style={{ color: `${color}80` }}
+            style={{ color: `${color}` }} // ✅ FIXED: was color}80 (50% opacity) → now full color
           >
             {percentage}%
           </span>
         </div>
+        {/* ✅ FIXED: was color}60 → now color}CC for label */}
         <p
-          className="font-rajdhani text-[10px] tracking-[0.2em] uppercase font-semibold mb-2"
-          style={{ color: `${color}60` }}
+          className="font-rajdhani text-[11px] tracking-[0.2em] uppercase font-semibold mb-2"
+          style={{ color: `${color}CC` }}
         >
           {label}
         </p>
         {/* Progress */}
-        <div className="h-[3px] bg-white/[0.04] rounded-full overflow-hidden">
+        <div className="h-[3px] bg-white/[0.06] rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-1000"
             style={{
@@ -267,7 +270,8 @@ const CommandButton = ({ icon: Icon, label, sublabel, color, onClick, badge }) =
         {label}
       </p>
       {sublabel && (
-        <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.1em] uppercase mt-0.5">
+        // ✅ FIXED: was text-zinc-600 → now text-zinc-400
+        <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase mt-0.5">
           {sublabel}
         </p>
       )}
@@ -282,7 +286,7 @@ const CommandButton = ({ icon: Icon, label, sublabel, color, onClick, badge }) =
     )}
     <ChevronRight
       size={18}
-      className="text-white/20 group-hover:text-white/40 z-10
+      className="text-white/30 group-hover:text-white/60 z-10
                  group-hover:translate-x-1 transition-all duration-300"
     />
   </button>
@@ -302,7 +306,8 @@ const RevenueItem = ({ label, amount, percentage, color, icon: Icon }) => (
         <Icon size={16} style={{ color }} />
       </div>
       <div className="flex-1">
-        <p className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.15em] uppercase font-semibold mb-1">
+        {/* ✅ FIXED: was text-zinc-500 → now text-zinc-400 */}
+        <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase font-semibold mb-1">
           {label}
         </p>
         <p className="font-orbitron text-white font-bold text-[16px]">
@@ -311,7 +316,7 @@ const RevenueItem = ({ label, amount, percentage, color, icon: Icon }) => (
       </div>
     </div>
     {/* Progress bar */}
-    <div className="h-[3px] bg-white/[0.04] rounded-full overflow-hidden">
+    <div className="h-[3px] bg-white/[0.06] rounded-full overflow-hidden">
       <div
         className="h-full rounded-full transition-all duration-1000"
         style={{
@@ -322,7 +327,8 @@ const RevenueItem = ({ label, amount, percentage, color, icon: Icon }) => (
       />
     </div>
     <div className="flex items-center justify-between mt-2">
-      <span className="font-rajdhani text-zinc-700 text-[9px] tracking-[0.1em] uppercase">
+      {/* ✅ FIXED: was text-zinc-700 → now text-zinc-500 */}
+      <span className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.1em] uppercase">
         of total revenue
       </span>
       <span className="font-orbitron text-[11px] font-bold" style={{ color }}>
@@ -395,8 +401,9 @@ const AdminDashboard = ({ onLogout }) => {
                 <p className="font-rajdhani text-[#C5A059] text-[12px] tracking-[0.3em] uppercase font-bold mb-1
                               flex items-center gap-2">
                   <span>{greeting()}</span>
-                  <span className="text-white/20">•</span>
-                  <span className="text-white/40">Admin</span>
+                  <span className="text-white/30">•</span>
+                  {/* ✅ FIXED: was text-white/40 → now text-white/60 */}
+                  <span className="text-white/60">Admin</span>
                 </p>
                 <h1 className="font-orbitron text-white font-extrabold text-[32px] tracking-[0.2em]
                                bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
@@ -415,7 +422,8 @@ const AdminDashboard = ({ onLogout }) => {
                     <span className="font-orbitron text-white text-[16px] font-bold tracking-wider block">
                       {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </span>
-                    <span className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.15em] uppercase">
+                    {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                    <span className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.15em] uppercase">
                       {time.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </span>
                   </div>
@@ -430,7 +438,8 @@ const AdminDashboard = ({ onLogout }) => {
                            shadow-lg shadow-black/10"
                 style={{ backgroundColor: '#000000' }}
               >
-                <Bell size={18} className="text-zinc-500" />
+                {/* ✅ FIXED: was text-zinc-500 → now text-zinc-400 */}
+                <Bell size={18} className="text-zinc-400" />
                 <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500
                                  flex items-center justify-center border-2 border-black
                                  animate-pulse">
@@ -504,7 +513,8 @@ const AdminDashboard = ({ onLogout }) => {
                         <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em] mb-1">
                           LIVE ROSTER
                         </h3>
-                        <p className="font-rajdhani text-zinc-600 text-[11px] tracking-[0.15em] uppercase">
+                        {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                        <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase">
                           Real-time activity monitor
                         </p>
                       </div>
@@ -531,10 +541,12 @@ const AdminDashboard = ({ onLogout }) => {
                                       bg-amber-500/[0.08] border border-amber-500/[0.15]">
                         <Timer size={14} className="text-amber-400" />
                         <span className="font-orbitron text-amber-400 text-[14px] font-bold">{LIVE.avg}</span>
-                        <span className="font-rajdhani text-amber-400/60 text-[10px] uppercase">avg time</span>
+                        {/* ✅ FIXED: was text-amber-400/60 → now text-amber-400/90 */}
+                        <span className="font-rajdhani text-amber-400/90 text-[11px] uppercase font-medium">avg time</span>
                       </div>
                     </div>
-                    <p className="font-rajdhani text-zinc-500 text-[12px] tracking-[0.2em] uppercase">
+                    {/* ✅ FIXED: was text-zinc-500 → now text-zinc-400 */}
+                    <p className="font-rajdhani text-zinc-400 text-[12px] tracking-[0.2em] uppercase font-medium">
                       Currently Active Members
                     </p>
                   </div>
@@ -554,13 +566,14 @@ const AdminDashboard = ({ onLogout }) => {
                         >
                           <tier.icon size={12} style={{ color: tier.color }} />
                         </div>
+                        {/* ✅ FIXED: was color}80 → now color}CC for tier labels */}
                         <span
                           className="font-rajdhani text-[11px] tracking-[0.12em] uppercase font-semibold w-20"
-                          style={{ color: `${tier.color}80` }}
+                          style={{ color: `${tier.color}CC` }}
                         >
                           {tier.label}
                         </span>
-                        <div className="flex-1 h-[4px] bg-white/[0.04] rounded-full overflow-hidden">
+                        <div className="flex-1 h-[4px] bg-white/[0.06] rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-1000"
                             style={{
@@ -596,7 +609,7 @@ const AdminDashboard = ({ onLogout }) => {
                     </div>
                     <ArrowRight
                       size={18}
-                      className="text-green-400/50 group-hover:text-green-400
+                      className="text-green-400/60 group-hover:text-green-400
                                  group-hover:translate-x-1 transition-all duration-300"
                     />
                   </div>
@@ -613,7 +626,8 @@ const AdminDashboard = ({ onLogout }) => {
                       <h3 className="font-orbitron text-white font-bold text-[14px] tracking-[0.15em]">
                         QUICK ACTIONS
                       </h3>
-                      <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.15em] uppercase">
+                      {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                      <p className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.15em] uppercase">
                         Frequently used commands
                       </p>
                     </div>
@@ -690,13 +704,15 @@ const AdminDashboard = ({ onLogout }) => {
                         <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em] mb-1">
                           MEMBERSHIP
                         </h3>
-                        <p className="font-rajdhani text-zinc-600 text-[11px] tracking-[0.15em] uppercase">
+                        {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                        <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase">
                           Tier distribution & analytics
                         </p>
                       </div>
                     </div>
                     <div>
-                      <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.2em] uppercase text-right mb-1">
+                      {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                      <p className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.2em] uppercase text-right mb-1">
                         Total Members
                       </p>
                       <p className="font-orbitron text-white font-extralight text-[36px] leading-none text-right">
@@ -756,7 +772,8 @@ const AdminDashboard = ({ onLogout }) => {
                         <p className="font-rajdhani text-cyan-400 text-[12px] font-bold tracking-[0.12em] uppercase leading-none mb-1">
                           Professional Trainers
                         </p>
-                        <p className="font-rajdhani text-cyan-400/40 text-[10px] tracking-[0.1em] uppercase">
+                        {/* ✅ FIXED: was text-cyan-400/40 → now text-cyan-400/70 */}
+                        <p className="font-rajdhani text-cyan-400/70 text-[10px] tracking-[0.1em] uppercase font-medium">
                           Active on roster
                         </p>
                       </div>
@@ -811,7 +828,8 @@ const AdminDashboard = ({ onLogout }) => {
                         <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em] mb-1">
                           REVENUE
                         </h3>
-                        <p className="font-rajdhani text-zinc-600 text-[11px] tracking-[0.15em] uppercase">
+                        {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                        <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase">
                           Today's financial performance
                         </p>
                       </div>
@@ -829,7 +847,8 @@ const AdminDashboard = ({ onLogout }) => {
 
                   {/* Amount */}
                   <div className="mb-8">
-                    <p className="font-rajdhani text-zinc-600 text-[11px] tracking-[0.2em] uppercase mb-2">
+                    {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                    <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.2em] uppercase mb-2 font-medium">
                       Total Collection
                     </p>
                     <div className="flex items-end gap-4 mb-4">
@@ -842,14 +861,15 @@ const AdminDashboard = ({ onLogout }) => {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Target size={12} className="text-zinc-600" />
-                          <span className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.12em] uppercase">
+                          <Target size={12} className="text-zinc-500" />
+                          {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                          <span className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.12em] uppercase font-medium">
                             Daily Target Progress
                           </span>
                         </div>
-                        <span className="font-orbitron text-zinc-500 text-[11px] font-bold">75%</span>
+                        <span className="font-orbitron text-zinc-300 text-[11px] font-bold">75%</span>
                       </div>
-                      <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                      <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-1000"
                           style={{
@@ -893,13 +913,14 @@ const AdminDashboard = ({ onLogout }) => {
                   <div className="h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent my-6" />
 
                   <div className="flex items-center justify-center gap-3 group-hover:gap-4 transition-all duration-300">
-                    <BarChart3 size={14} className="text-[#C5A059]/40 group-hover:text-[#C5A059]/60 transition-colors" />
-                    <span className="font-rajdhani text-white/30 group-hover:text-white/50 text-[11px] tracking-[0.12em] uppercase transition-colors">
+                    <BarChart3 size={14} className="text-[#C5A059]/50 group-hover:text-[#C5A059]/80 transition-colors" />
+                    {/* ✅ FIXED: was text-white/30 → now text-white/50 */}
+                    <span className="font-rajdhani text-white/50 group-hover:text-white/70 text-[11px] tracking-[0.12em] uppercase transition-colors">
                       Click for detailed analytics
                     </span>
                     <ArrowRight
                       size={14}
-                      className="text-white/20 group-hover:text-[#C5A059]/60
+                      className="text-white/30 group-hover:text-[#C5A059]/80
                                  group-hover:translate-x-1 transition-all duration-300"
                     />
                   </div>
@@ -926,7 +947,8 @@ const AdminDashboard = ({ onLogout }) => {
                     <p className="font-rajdhani text-white text-[13px] font-bold tracking-[0.12em] uppercase mb-1">
                       {MEMBERS.expired} Memberships Expiring Soon
                     </p>
-                    <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.1em] uppercase">
+                    {/* ✅ FIXED: was text-zinc-600 → now text-zinc-400 */}
+                    <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase font-medium">
                       Requires immediate attention this week
                     </p>
                   </div>
