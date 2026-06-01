@@ -174,16 +174,13 @@ jobs:
             **Installation:**
             1. Open the DMG file
             2. Drag **GymPro Admin** to **Applications** folder
-            3. Open **Applications** folder
-            4. **Right-click** on GymPro Admin → Click **"Open"**
-            5. Click **"Open"** in the warning dialog
-            6. ✅ App will launch
+            3. **Right-click** on app → Click **"Open"**
+            4. Click **"Open"** in warning dialog
 
-            **If app still does not open, run this in Terminal:**
+            **If app does not open, run in Terminal:**
             ```
             sudo xattr -cr /Applications/GymPro\ Admin.app
             ```
-            Then open app again.
 
             ---
 
@@ -192,8 +189,7 @@ jobs:
             - **Installer:** `GymPro Admin Setup x.x.x.exe`
             - **Portable:** `GymPro Admin x.x.x.exe`
 
-            If SmartScreen warning appears:
-            **More Info → Run Anyway**
+            If SmartScreen warning appears: **More Info → Run Anyway**
 
             ---
 
