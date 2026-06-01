@@ -12,6 +12,9 @@ permissions:
 
 jobs:
 
+  # ─────────────────────────────────────────────
+  # 🪟 WINDOWS BUILD
+  # ─────────────────────────────────────────────
   build-windows:
     runs-on: windows-latest
 
@@ -25,8 +28,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: 📦 Install Dependencies
-        run: npm ci
+      - name: 📦 Install Dependencies (with Retry)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: 🏗️ Build Windows App
         run: npm run electron:build:win:ci
@@ -42,6 +50,9 @@ jobs:
             release/*.zip
 
 
+  # ─────────────────────────────────────────────
+  # 🍎 MAC BUILD
+  # ─────────────────────────────────────────────
   build-mac:
     runs-on: macos-latest
 
@@ -60,8 +71,13 @@ jobs:
           rm -rf ~/Library/Caches/electron
           rm -rf ~/Library/Caches/electron-builder
 
-      - name: 📦 Install Dependencies
-        run: npm ci
+      - name: 📦 Install Dependencies (with Retry)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: 🏗️ Build Mac App (Ad-hoc Signed)
         run: npm run electron:build:mac:ci
@@ -86,6 +102,9 @@ jobs:
             release/*.zip
 
 
+  # ─────────────────────────────────────────────
+  # 🐧 LINUX BUILD
+  # ─────────────────────────────────────────────
   build-linux:
     runs-on: ubuntu-latest
 
@@ -104,8 +123,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libarchive-tools rpm
 
-      - name: 📦 Install Node Dependencies
-        run: npm ci
+      - name: 🧹 Clean Electron Cache
+        run: |
+          rm -rf ~/.cache/electron
+          rm -rf ~/.cache/electron-builder
+
+      - name: 📦 Install Node Dependencies (with Retry)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci
 
       - name: 🏗️ Build Linux App
         run: npm run electron:build:linux:ci
@@ -122,6 +151,9 @@ jobs:
             release/*.rpm
 
 
+  # ─────────────────────────────────────────────
+  # 🚀 CREATE RELEASE
+  # ─────────────────────────────────────────────
   create-release:
     needs:
       - build-windows
@@ -174,13 +206,16 @@ jobs:
             **Installation:**
             1. Open the DMG file
             2. Drag **GymPro Admin** to **Applications** folder
-            3. **Right-click** on app → Click **"Open"**
-            4. Click **"Open"** in warning dialog
+            3. Open **Applications** folder
+            4. **Right-click** on GymPro Admin → Click **"Open"**
+            5. Click **"Open"** in the warning dialog
+            6. ✅ App will launch
 
-            **If app does not open, run in Terminal:**
+            **If app still does not open, run this in Terminal:**
             ```
             sudo xattr -cr /Applications/GymPro\ Admin.app
             ```
+            Then open app again.
 
             ---
 
@@ -189,7 +224,8 @@ jobs:
             - **Installer:** `GymPro Admin Setup x.x.x.exe`
             - **Portable:** `GymPro Admin x.x.x.exe`
 
-            If SmartScreen warning appears: **More Info → Run Anyway**
+            If SmartScreen warning appears:
+            **More Info → Run Anyway**
 
             ---
 
