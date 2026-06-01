@@ -1,16 +1,24 @@
 // electron/preload.js
 const { contextBridge, ipcRenderer } = require('electron')
 
-// Expose safe APIs to renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
-  // App info
+  // ── App Info ──────────────────────────────────
   getVersion: () => ipcRenderer.invoke('get-version'),
+  getPlatform: () => ipcRenderer.invoke('get-platform'),
 
-  // Window controls
+  // ── Window Controls ───────────────────────────
   minimizeWindow: () => ipcRenderer.send('minimize-window'),
   maximizeWindow: () => ipcRenderer.send('maximize-window'),
-  closeWindow:    () => ipcRenderer.send('close-window'),
+  closeWindow: () => ipcRenderer.send('close-window'),
 
-  // Platform info
+  // ── Maximize State Listener ───────────────────
+  onMaximizeChange: (callback) => {
+    ipcRenderer.on('window-maximized', (_, isMaximized) => callback(isMaximized))
+  },
+
+  // ── Platform Info ─────────────────────────────
   platform: process.platform,
+  isMac: process.platform === 'darwin',
+  isWindows: process.platform === 'win32',
+  isLinux: process.platform === 'linux',
 })
