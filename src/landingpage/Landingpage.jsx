@@ -218,7 +218,7 @@ const TESTIMONIALS = [
     name: 'Rajesh Kumar',
     gym: 'Iron Paradise Gym',
     city: 'Delhi',
-    text: 'Collection 40% badh gaya sirf auto reminders ki wajah se. Pehle register me likhte the ab ek click me sab.',
+    text: 'Collection increased by 40% just because of auto reminders. Earlier we used to write in registers, now everything in one click.',
     rating: 5,
     members: '350+',
   },
@@ -226,7 +226,7 @@ const TESTIMONIALS = [
     name: 'Priya Sharma',
     gym: 'FitZone Studio',
     city: 'Mumbai',
-    text: 'Managing 500+ members was a nightmare. Ab sab automated hai. Best investment for my gym.',
+    text: 'Managing 500+ members was a nightmare. Now everything is automated. Best investment for my gym.',
     rating: 5,
     members: '500+',
   },
@@ -234,7 +234,7 @@ const TESTIMONIALS = [
     name: 'Vikram Singh',
     gym: 'PowerHouse Fitness',
     city: 'Jaipur',
-    text: 'Analytics se pata chalta hai kaunsa plan zyada bikta hai. Data driven decisions le rahe hain ab.',
+    text: 'Analytics helps us understand which plan sells the most. We are making data-driven decisions now.',
     rating: 5,
     members: '200+',
   },
@@ -242,7 +242,7 @@ const TESTIMONIALS = [
     name: 'Amit Patel',
     gym: 'Muscle Factory',
     city: 'Ahmedabad',
-    text: 'Renewal rate 60% se 85% ho gaya WhatsApp reminders ki wajah se. Game changer app hai.',
+    text: 'Renewal rate increased from 60% to 85% thanks to WhatsApp reminders. This app is a game changer.',
     rating: 5,
     members: '400+',
   },
@@ -250,7 +250,7 @@ const TESTIMONIALS = [
     name: 'Sneha Reddy',
     gym: 'CoreFit Studio',
     city: 'Hyderabad',
-    text: 'Simple, fast, no lag. 3 apps try kiye — ye sabse best hai. Hindi me bhi kaam karta hai!',
+    text: 'Simple, fast, no lag. Tried 3 apps — this is the best. Even works in Hindi!',
     rating: 5,
     members: '150+',
   },
@@ -258,7 +258,7 @@ const TESTIMONIALS = [
     name: 'Deepak Yadav',
     gym: 'D-Fitness Hub',
     city: 'Lucknow',
-    text: 'Staff management feature zabardast hai. Trainer ki salary, attendance sab track ho raha hai.',
+    text: 'Staff management feature is excellent. Trainer salary, attendance — everything is tracked.',
     rating: 5,
     members: '280+',
   },
@@ -266,36 +266,36 @@ const TESTIMONIALS = [
 
 const FAQS = [
   {
-    q: 'Kya app free hai?',
-    a: 'Haan! Download aur basic features completely free hain. Premium ke liye affordable plans available hain.',
+    q: 'Is the app free?',
+    a: 'Yes! Download and basic features are completely free. Premium plans are available at affordable prices.',
   },
   {
-    q: 'Kya internet chahiye?',
-    a: 'Nahi! App completely offline kaam karta hai. Internet sirf WhatsApp reminders aur cloud backup ke liye chahiye.',
+    q: 'Do I need internet?',
+    a: 'No! App works completely offline. Internet is only needed for WhatsApp reminders and cloud backup.',
   },
   {
-    q: 'Kya mera data safe hai?',
-    a: 'Bilkul! Data aapke device me encrypted form me store hota hai. Hum kabhi access nahi karte.',
+    q: 'Is my data safe?',
+    a: 'Absolutely! Data is stored in encrypted form on your device. We never access your data.',
   },
   {
-    q: 'Kitne members add kar sakte hain?',
-    a: 'Unlimited! Chahe 10 hon ya 10,000 — koi limit nahi kisi bhi plan me.',
+    q: 'How many members can I add?',
+    a: 'Unlimited! Whether you have 10 or 10,000 members — there is no limit in any plan.',
   },
   {
-    q: 'Mobile se bhi kaam karta hai?',
-    a: 'Haan! Android app available hai. Windows aur Mac apps bhi hain. Sab sync hota hai.',
+    q: 'Does it work on mobile?',
+    a: 'Yes! Android app is available. Windows and Mac apps are also available. Everything syncs.',
   },
   {
-    q: 'Payment kaise karte hain?',
-    a: 'App ke andar Upgrade button se UPI QR scan karke. Razorpay powered secure payment.',
+    q: 'How do I make payment?',
+    a: 'From the Upgrade button inside the app, scan UPI QR. Razorpay powered secure payment.',
   },
   {
-    q: 'Refund milega?',
-    a: '7 din ka full refund policy. Pasand nahi aaya to 100% refund — no questions asked.',
+    q: 'Will I get a refund?',
+    a: '7-day full refund policy. If you don\'t like it, 100% refund — no questions asked.',
   },
   {
-    q: 'Support kaise milega?',
-    a: 'WhatsApp, Email aur Phone support. Premium users ko 2 ghante me response guarantee.',
+    q: 'How do I get support?',
+    a: 'WhatsApp, Email and Phone support. Premium users get guaranteed response within 2 hours.',
   },
 ];
 
@@ -595,7 +595,7 @@ const HeroSection = () => (
 
       {/* Subtitle */}
       <p className="font-rajdhani text-zinc-500 text-[14px] md:text-[17px] tracking-[0.04em] max-w-2xl mx-auto mb-10 leading-[1.7]">
-        Members, payments, attendance, reminders, analytics — sab kuch ek jagah.
+        Members, payments, attendance, reminders, analytics — everything in one place.
         Built for{' '}
         <span className="text-white font-semibold">
           Indian gym owners
@@ -746,7 +746,7 @@ const HowItWorksSection = () => (
           <GradientText>4 STEPS</GradientText>
         </h2>
         <p className="font-rajdhani text-zinc-500 text-[13px] md:text-[15px] tracking-[0.04em] mb-14">
-          Download to managing your gym — under 5 minutes.
+          From download to managing your gym — under 5 minutes.
         </p>
       </div>
 
@@ -1413,7 +1413,7 @@ const Footer = () => {
             </div>
 
             <p className="font-rajdhani text-zinc-600 text-[13px] tracking-[0.02em] leading-relaxed mb-5 max-w-xs">
-              India ka sabse powerful gym management software.
+              India's most powerful gym management software.
               Built with ❤️ for gym owners.
             </p>
 
