@@ -568,7 +568,7 @@ const AdminSettings = ({ onLogout }) => {
                   <div className="space-y-3">
                     <SettingRow icon={Mail} label="Email Address" value="admin@fitzone.com" color="#3B82F6" />
                     <SettingRow icon={Phone} label="Phone Number" value="+91 9876543210" color="#22C55E" />
-                    <SettingRow icon={Lock} label="Change Password" value="Last changed 30 days ago" color="#EF4444" />
+                    <SettingRow onClick={() => navigate('/device-management')} icon={Lock} label="Change Password" value="Last changed 30 days ago" color="#EF4444" />
                     <SettingRow icon={Key} label="Two-Factor Auth" value="Enabled via SMS"
                       color="#A855F7" badge="ON" />
                     <SettingRow icon={Globe} label="Language" value="English (India)" color="#EAB308" />

@@ -1,161 +1,358 @@
-import React, { useState } from 'react';
+// src/screens/Auth/Login.jsx
+
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User } from 'lucide-react';
+import {
+  Dumbbell,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Mail,
+  Lock,
+  AlertCircle,
+  Shield,
+} from 'lucide-react';
 
-const BG_IMAGE = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80';
+const COLORS = {
+  gold: '#C5A059',
+  goldLight: '#EAB308',
+};
 
-const Login = ({ onLogin }) => {
+const DEMO_ACCOUNT = {
+  email: 'admin@gymverse.com',
+  password: 'admin123',
+};
+
+export default function Login({ onLogin }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
 
-  const handleSubmit = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) return setError('Fill all fields');
-    setLoading(true);
     setError('');
-    setTimeout(() => {
-      if (email === 'admin@gym.com' && password === 'admin123') {
-        onLogin({ email, name: 'Admin' });
-      } else {
-        setError('Invalid credentials');
+    setLoading(true);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      // ⭐ FIX: Normalize email
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // Check demo account
+      if (
+        normalizedEmail === DEMO_ACCOUNT.email &&
+        password === DEMO_ACCOUNT.password
+      ) {
+        onLogin({
+          name: 'Abdullah Ahmed',
+          email: normalizedEmail,
+          gymName: 'PowerFit Gym',
+          gymCode: 'GYM4X2',
+          role: 'admin',
+          mobile: '+91 98765 43210',
+        });
+        return;
       }
+
+      // Check registered users
+      const registeredUsers = JSON.parse(
+        localStorage.getItem('gymverse_users') || '[]'
+      );
+
+      // ⭐ FIX: Use normalized email for comparison
+      const user = registeredUsers.find(
+        (u) => u.email === normalizedEmail && u.password === password
+      );
+
+      if (user) {
+        onLogin({
+          name: user.name,
+          email: user.email,
+          gymName: user.gymName,
+          mobile: user.mobile,
+          role: 'admin',
+        });
+      } else {
+        setError('Invalid email or password');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
-
+console.log('Users:', JSON.parse(localStorage.getItem('gymverse_users')));
   return (
-    <div className="relative flex h-screen w-screen bg-black overflow-hidden">
-      {/* BG */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <img
-          src={BG_IMAGE}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-15 blur-sm"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-black/95 to-black" />
-      </div>
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden p-4"
+      style={{ background: '#000000' }}
+    >
+      <div
+        className="absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(197,160,89,0.4) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(197,160,89,0.4) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+        }}
+      />
 
-      {/* Left */}
-      <div className="relative z-10 flex flex-col justify-center items-center
-                      w-1/2 px-16 border-r border-white/5">
-        <div className="flex items-center gap-4 mb-16">
-          <div className="w-14 h-14 rounded-2xl bg-[#C5A059]/15 border border-[#C5A059]/25
-                          flex items-center justify-center">
-            <div className="w-5 h-5 bg-[#C5A059] rounded-sm" />
-          </div>
-          <div>
-            <h1 className="font-orbitron text-white font-black text-3xl tracking-[0.35em]">
-              GYM
+      <div
+        className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full blur-[120px] opacity-[0.06]"
+        style={{ background: COLORS.gold }}
+      />
+      <div
+        className="absolute bottom-1/4 left-1/4 w-72 h-72 rounded-full blur-[140px] opacity-[0.04]"
+        style={{ background: COLORS.goldLight }}
+      />
+
+      <div className="relative w-full max-w-md">
+        <div
+          className="rounded-3xl p-8 sm:p-10"
+          style={{
+            background: 'rgba(5,5,5,0.85)',
+            border: '1px solid rgba(197,160,89,0.15)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+          }}
+        >
+          {/* Logo */}
+          <div className="flex flex-col items-center mb-8">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+              style={{
+                background: `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.gold}08)`,
+                border: `1px solid ${COLORS.gold}25`,
+              }}
+            >
+              <Dumbbell size={26} color={COLORS.gold} />
+            </div>
+
+            <h1 className="font-orbitron text-[20px] font-bold tracking-[0.15em] mb-1">
+              <span className="text-white">GYM</span>
+              <span style={{ color: COLORS.gold }}>VERSE</span>
             </h1>
-            <p className="font-rajdhani text-zinc-500 text-sm tracking-[0.2em] uppercase">
+
+            <p className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.25em] uppercase">
               Admin Control Panel
             </p>
           </div>
-        </div>
 
-        <div className="w-full max-w-xs space-y-3">
-          {[
-            { label: 'Active Members', value: '128', color: 'text-[#C5A059]' },
-            { label: 'Live Now', value: '15', color: 'text-green-400' },
-            { label: "Today's Revenue", value: '₹45,200', color: 'text-purple-400' },
-          ].map((s) => (
-            <div key={s.label}
-              className="flex items-center justify-between px-4 py-3
-                         bg-white/[0.02] rounded-xl border border-white/6">
-              <span className="font-rajdhani text-zinc-500 text-sm tracking-wider uppercase">
-                {s.label}
-              </span>
-              <span className={`font-orbitron font-bold text-sm ${s.color}`}>
-                {s.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+          {/* Title */}
+          <div className="text-center mb-8">
+            <h2 className="font-orbitron text-white text-[16px] font-bold tracking-[0.12em] mb-1.5">
+              WELCOME BACK
+            </h2>
+            <p className="font-rajdhani text-zinc-500 text-[13px] tracking-[0.04em]">
+              Sign in to manage your gym
+            </p>
+          </div>
 
-      {/* Right */}
-      <div className="relative z-10 flex flex-col justify-center items-center w-1/2 px-16">
-        <div className="w-full max-w-md">
-          <p className="font-rajdhani text-zinc-500 text-sm tracking-[0.2em] uppercase mb-2">
-            Welcome Back
-          </p>
-          <h2 className="font-orbitron text-white font-bold text-3xl tracking-[0.2em] mb-8">
-            SIGN IN
-          </h2>
-
+          {/* Error */}
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
-              <p className="font-rajdhani text-red-400 text-sm">{error}</p>
+            <div
+              className="mb-5 px-4 py-3 rounded-xl flex items-center gap-2.5 animate-shake"
+              style={{
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.20)',
+              }}
+            >
+              <AlertCircle size={16} color="#EF4444" />
+              <p className="font-rajdhani text-red-400 text-[13px] tracking-[0.04em]">
+                {error}
+              </p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={handleLogin} className="space-y-4">
+
+            {/* Email */}
             <div>
-              <label className="block font-rajdhani text-zinc-500 text-xs tracking-[0.2em] uppercase mb-2">
-                Email
+              <label className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.18em] uppercase block mb-2 font-bold">
+                Email Address
               </label>
-              <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl
-                              bg-white/[0.03] border border-white/8
-                              focus-within:border-[#C5A059]/40 transition-all">
-                <User size={16} className="text-zinc-500" />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Mail size={15} color="#52525B" />
+                </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@gym.com"
-                  className="flex-1 bg-transparent font-rajdhani text-white text-base
-                             outline-none placeholder:text-zinc-700 tracking-wide"
+                  placeholder="admin@gymverse.com"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-xl pl-11 pr-4 py-3.5 font-rajdhani text-white text-[13px] placeholder-zinc-700 transition-all duration-300 disabled:opacity-50"
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = `${COLORS.gold}40`;
+                    e.target.style.background = `${COLORS.gold}05`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.target.style.background = 'rgba(255,255,255,0.02)';
+                  }}
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block font-rajdhani text-zinc-500 text-xs tracking-[0.2em] uppercase mb-2">
+              <label className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.18em] uppercase block mb-2 font-bold">
                 Password
               </label>
-              <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl
-                              bg-white/[0.03] border border-white/8
-                              focus-within:border-[#C5A059]/40 transition-all">
-                <Lock size={16} className="text-zinc-500" />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Lock size={15} color="#52525B" />
+                </div>
                 <input
-                  type={showPw ? 'text' : 'password'}
+                  type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex-1 bg-transparent font-rajdhani text-white text-base
-                             outline-none placeholder:text-zinc-700 tracking-wide"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-xl pl-11 pr-12 py-3.5 font-rajdhani text-white text-[13px] placeholder-zinc-700 transition-all duration-300 disabled:opacity-50"
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = `${COLORS.gold}40`;
+                    e.target.style.background = `${COLORS.gold}05`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.target.style.background = 'rgba(255,255,255,0.02)';
+                  }}
                 />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  className="text-zinc-500 hover:text-zinc-300 transition-colors">
-                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
 
-            <div className="px-4 py-2.5 rounded-xl bg-[#C5A059]/5 border border-[#C5A059]/15">
-              <p className="font-rajdhani text-[#C5A059]/60 text-xs tracking-wide">
-                Demo: admin@gym.com / admin123
-              </p>
+            {/* Forgot */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="font-rajdhani text-zinc-600 text-[11px] tracking-[0.08em] hover:text-[#C5A059] transition-colors duration-300"
+              >
+                Forgot Password?
+              </button>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-orbitron font-bold text-sm
-                         tracking-[0.2em] text-black bg-[#C5A059] hover:bg-[#d4af6a]
-                         disabled:opacity-50 transition-all duration-200 mt-2"
+              className="w-full flex items-center justify-center gap-3 font-orbitron text-[12px] font-bold tracking-[0.15em] py-3.5 rounded-xl transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              style={{
+                background: loading
+                  ? 'rgba(197,160,89,0.20)'
+                  : `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldLight})`,
+                color: '#000000',
+                boxShadow: loading
+                  ? 'none'
+                  : '0 8px 32px rgba(197,160,89,0.25)',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
-              {loading ? 'SIGNING IN...' : 'SIGN IN'}
+              {loading ? (
+                <>
+                  <div
+                    className="w-4 h-4 border-2 rounded-full animate-spin"
+                    style={{
+                      borderColor: 'rgba(0,0,0,0.2)',
+                      borderTopColor: '#000000',
+                    }}
+                  />
+                  SIGNING IN...
+                </>
+              ) : (
+                <>
+                  SIGN IN
+                  <ArrowRight size={14} />
+                </>
+              )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="font-rajdhani text-zinc-700 text-[10px] tracking-[0.18em] uppercase">
+              OR
+            </span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+
+          {/* Register Link */}
+          <button
+            onClick={() => navigate('/register')}
+            className="w-full py-3 rounded-xl font-rajdhani text-[12px] font-bold tracking-[0.15em] uppercase transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
+            style={{
+              background: `${COLORS.gold}08`,
+              color: COLORS.gold,
+              border: `1px solid ${COLORS.gold}20`,
+            }}
+          >
+            <Shield size={13} />
+            Create New Account
+          </button>
+
+          {/* Demo Hint */}
+          <div
+            className="mt-6 pt-5 text-center"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+          >
+            <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.12em] uppercase mb-1">
+              Demo Account
+            </p>
+            <p className="font-rajdhani text-zinc-500 text-[11px]">
+              <span style={{ color: COLORS.gold }}>admin@gymverse.com</span>
+              {' / '}
+              <span style={{ color: COLORS.gold }}>admin123</span>
+            </p>
+          </div>
         </div>
+
+        <p className="text-center font-rajdhani text-zinc-700 text-[11px] tracking-[0.08em] mt-6">
+          © {new Date().getFullYear()} GYMVERSE. Made in India 🇮🇳
+        </p>
       </div>
+
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+      `}</style>
     </div>
   );
-};
-
-export default Login;
+}

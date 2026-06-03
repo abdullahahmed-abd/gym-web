@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { PlansProvider } from './context/PlansContext';
 
+// Landing Page (Sabse pehle dikhega)
+import LandingPage from '../../landingpage/Landingpage'
+import AdminUpgrade from './screens/Upgrade/AdminUpgrade';
 // Auth Screens
 import Login from './screens/Auth/Login';
 import Register from './screens/Auth/Register';
@@ -23,6 +26,9 @@ import AdminAddTrainer from './screens/Trainers/AdminAddTrainer';
 import AdminTrainerProfile from './screens/Trainers/AdminTrainerProfile';
 import TrainerAttendanceLog from './screens/Trainers/TrainerAttendanceLog';
 import TrainerDetail from './screens/Trainers/TrainerDetail';
+import AdminDeviceManagement from './screens/Dashboard/AdminDeviceManagement';
+
+// ─── Auth Context ────────────────────────────────────────────────────────────
 
 const AuthContext = createContext(null);
 
@@ -36,9 +42,13 @@ export const useAuth = () => {
   return context;
 };
 
+// ─── Protected Route ─────────────────────────────────────────────────────────
+
 const ProtectedRoute = ({ isLoggedIn, children }) => {
-  return isLoggedIn ? children : <Navigate to="/" replace />;
+  return isLoggedIn ? children : <Navigate to="/login" replace />;
 };
+
+// ─── App ─────────────────────────────────────────────────────────────────────
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -53,6 +63,27 @@ function App() {
       return null;
     }
   });
+
+  useEffect(() => {
+    const syncAuth = () => {
+      setIsLoggedIn(
+        localStorage.getItem('gym_admin_logged_in') === 'true'
+      );
+
+      try {
+        const saved = localStorage.getItem('gym_admin_data');
+        setAdminData(saved ? JSON.parse(saved) : null);
+      } catch {
+        setAdminData(null);
+      }
+    };
+
+    window.addEventListener('storage', syncAuth);
+
+    return () => {
+      window.removeEventListener('storage', syncAuth);
+    };
+  }, []);
 
   const handleLogin = (data) => {
     const payload = data || {
@@ -93,10 +124,27 @@ function App() {
         <Router>
           <Routes>
 
-            {/* AUTH */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  LANDING PAGE — Sabse pehle dikhega                          */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <LandingPage />
+                )
+              }
+            />
+
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  AUTH — Login & Register                                      */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+
+            <Route
+              path="/login"
               element={
                 isLoggedIn ? (
                   <Navigate to="/dashboard" replace />
@@ -117,7 +165,9 @@ function App() {
               }
             />
 
-            {/* DASHBOARD */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  DASHBOARD                                                    */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/dashboard"
@@ -128,7 +178,9 @@ function App() {
               }
             />
 
-            {/* PLANS */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  PLANS                                                        */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/plans"
@@ -148,7 +200,9 @@ function App() {
               }
             />
 
-            {/* EXPENSES */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  EXPENSES                                                     */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/expenses"
@@ -159,7 +213,9 @@ function App() {
               }
             />
 
-            {/* LIVE ROSTER */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  LIVE ROSTER                                                  */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/live-roster"
@@ -179,7 +235,9 @@ function App() {
               }
             />
 
-            {/* MEMBERS */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  MEMBERS                                                      */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/members"
@@ -199,7 +257,9 @@ function App() {
               }
             />
 
-            {/* TRAINERS */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  TRAINERS                                                     */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/trainers"
@@ -219,8 +279,6 @@ function App() {
               }
             />
 
-            {/* TRAINER PROFILE */}
-
             <Route
               path="/trainer-profile"
               element={
@@ -229,8 +287,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            {/* TRAINER DETAIL */}
 
             <Route
               path="/trainer-detail"
@@ -241,8 +297,6 @@ function App() {
               }
             />
 
-            {/* TRAINER ATTENDANCE */}
-
             <Route
               path="/trainer-attendance-log"
               element={
@@ -252,7 +306,9 @@ function App() {
               }
             />
 
-            {/* SETTINGS */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  SETTINGS                                                     */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="/settings"
@@ -263,7 +319,30 @@ function App() {
               }
             />
 
-            {/* FALLBACK */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  DEVICE MANAGEMENT                                            */}
+            {/* ══════════════════════════════════════════════════════════════ */}
+
+            <Route
+              path="/device-management"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <AdminDeviceManagement {...sharedProps} />
+                </ProtectedRoute>
+              }
+            />
+<Route
+              path="/upgrade"
+              element={
+                <ProtectedRoute isLoggedIn={isLoggedIn}>
+                  <AdminUpgrade {...sharedProps} />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ══════════════════════════════════════════════════════════════ */}
+            {/*  FALLBACK — Unknown routes                                    */}
+            {/* ══════════════════════════════════════════════════════════════ */}
 
             <Route
               path="*"

@@ -1,163 +1,388 @@
-// src/components/auth/LoginPage.jsx
-import { useState } from 'react'
-import { Dumbbell, Eye, EyeOff, ArrowRight } from 'lucide-react'
+// src/screens/Auth/Login.jsx
 
-export default function LoginPage({ onLogin }) {
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [showPass, setShowPass] = useState(false)
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Dumbbell,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Mail,
+  Lock,
+  AlertCircle,
+  Shield,
+} from 'lucide-react';
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+
+const COLORS = {
+  gold: '#C5A059',
+  goldLight: '#EAB308',
+};
+
+// ─── DEMO ACCOUNT ────────────────────────────────────────────────────────────
+
+const DEMO_ACCOUNT = {
+  email: 'admin@gymverse.com',
+  password: 'admin123',
+};
+
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
+
+export default function Login({ onLogin }) {
+  const navigate = useNavigate();
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-    // ── Dummy login for now (replace with API later) ──
-    setTimeout(() => {
-      if (email === 'admin@gym.com' && password === 'admin123') {
+    try {
+      // ── Simulate API delay ────────────────────────────────────────────────
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      // ── Check demo account ────────────────────────────────────────────────
+      if (
+        email === DEMO_ACCOUNT.email &&
+        password === DEMO_ACCOUNT.password
+      ) {
         onLogin({
           name: 'Abdullah Ahmed',
           email: email,
           gymName: 'PowerFit Gym',
           gymCode: 'GYM4X2',
           role: 'admin',
-        })
-      } else {
-        setError('Invalid email or password')
+          mobile: '+91 98765 43210',
+        });
+        return;
       }
-      setLoading(false)
-    }, 1000)
-  }
+
+      // ── Check registered users in localStorage ───────────────────────────
+      const registeredUsers = JSON.parse(
+        localStorage.getItem('gymverse_users') || '[]'
+      );
+
+      const user = registeredUsers.find(
+        (u) => u.email === email && u.password === password
+      );
+
+      if (user) {
+        onLogin({
+          name: user.name,
+          email: user.email,
+          gymName: user.gymName,
+          mobile: user.mobile,
+          role: 'admin',
+        });
+      } else {
+        setError('Invalid email or password');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-[calc(100vh-40px)] flex items-center justify-center relative overflow-hidden">
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden p-4"
+      style={{ background: '#000000' }}
+    >
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/*  Background Layers                                                  */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
 
-      {/* Background */}
-      <div className="absolute inset-0">
+      <div
+        className="absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(197,160,89,0.4) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(197,160,89,0.4) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+        }}
+      />
+
+      <div
+        className="absolute top-1/4 right-1/4 w-64 h-64 rounded-full blur-[120px] opacity-[0.06]"
+        style={{ background: COLORS.gold }}
+      />
+      <div
+        className="absolute bottom-1/4 left-1/4 w-72 h-72 rounded-full blur-[140px] opacity-[0.04]"
+        style={{ background: COLORS.goldLight }}
+      />
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/*  Login Card                                                         */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+
+      <div className="relative w-full max-w-md">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-15"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-black" />
-      </div>
+          className="rounded-3xl p-8 sm:p-10"
+          style={{
+            background: 'rgba(5,5,5,0.85)',
+            border: '1px solid rgba(197,160,89,0.15)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
+          }}
+        >
+          {/* ─── Logo Section ───────────────────────────────────────────── */}
 
-      {/* Glows */}
-      <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-yellow-500/5 rounded-full blur-[120px]" />
-      <div className="absolute bottom-1/4 left-1/4 w-48 h-48 bg-purple-500/5 rounded-full blur-[100px]" />
-
-      {/* Login Card */}
-      <div className="relative w-full max-w-md mx-auto px-4">
-        <div className="glass rounded-2xl p-8 sm:p-10">
-
-          {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mb-4">
-              <Dumbbell className="w-7 h-7 text-yellow-500" />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+              style={{
+                background: `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.gold}08)`,
+                border: `1px solid ${COLORS.gold}25`,
+              }}
+            >
+              <Dumbbell size={26} color={COLORS.gold} />
             </div>
-            <h1 className="font-orbitron text-xl font-bold tracking-[3px] text-white mb-1">
-              GYMPRO
+
+            <h1 className="font-orbitron text-[20px] font-bold tracking-[0.15em] mb-1">
+              <span className="text-white">GYM</span>
+              <span style={{ color: COLORS.gold }}>VERSE</span>
             </h1>
-            <p className="font-rajdhani text-sm text-zinc-500 tracking-wider uppercase">
-              Admin Dashboard
+
+            <p className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.25em] uppercase">
+              Admin Control Panel
             </p>
           </div>
 
-          {/* Title */}
+          {/* ─── Title ──────────────────────────────────────────────────── */}
+
           <div className="text-center mb-8">
-            <h2 className="font-orbitron text-lg font-bold text-white tracking-wider mb-1">
-              Welcome Back
+            <h2 className="font-orbitron text-white text-[16px] font-bold tracking-[0.12em] mb-1.5">
+              WELCOME BACK
             </h2>
-            <p className="font-rajdhani text-sm text-zinc-500">
-              Sign in to your admin account
+            <p className="font-rajdhani text-zinc-500 text-[13px] tracking-[0.04em]">
+              Sign in to manage your gym
             </p>
           </div>
 
-          {/* Error */}
+          {/* ─── Error Banner ───────────────────────────────────────────── */}
+
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20">
-              <p className="font-rajdhani text-sm text-red-400 text-center">{error}</p>
+            <div
+              className="mb-5 px-4 py-3 rounded-xl flex items-center gap-2.5 animate-shake"
+              style={{
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.20)',
+              }}
+            >
+              <AlertCircle size={16} color="#EF4444" />
+              <p className="font-rajdhani text-red-400 text-[13px] tracking-[0.04em]">
+                {error}
+              </p>
             </div>
           )}
 
-          {/* Form */}
+          {/* ─── Form ───────────────────────────────────────────────────── */}
+
           <form onSubmit={handleLogin} className="space-y-4">
 
-            {/* Email */}
+            {/* Email Field */}
             <div>
-              <label className="font-rajdhani text-xs text-zinc-500 tracking-wider uppercase block mb-2">
-                Email
+              <label className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.18em] uppercase block mb-2 font-bold">
+                Email Address
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@gym.com"
-                required
-                className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 font-rajdhani text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-yellow-500/40 focus:bg-yellow-500/[0.02] transition-all duration-300"
-              />
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Mail size={15} color="#52525B" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@gymverse.com"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-xl pl-11 pr-4 py-3.5 font-rajdhani text-white text-[13px] placeholder-zinc-700 transition-all duration-300 disabled:opacity-50"
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = `${COLORS.gold}40`;
+                    e.target.style.background = `${COLORS.gold}05`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.target.style.background = 'rgba(255,255,255,0.02)';
+                  }}
+                />
+              </div>
             </div>
 
-            {/* Password */}
+            {/* Password Field */}
             <div>
-              <label className="font-rajdhani text-xs text-zinc-500 tracking-wider uppercase block mb-2">
+              <label className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.18em] uppercase block mb-2 font-bold">
                 Password
               </label>
               <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                  <Lock size={15} color="#52525B" />
+                </div>
                 <input
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 pr-12 font-rajdhani text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-yellow-500/40 focus:bg-yellow-500/[0.02] transition-all duration-300"
+                  disabled={loading}
+                  className="w-full rounded-xl pl-11 pr-12 py-3.5 font-rajdhani text-white text-[13px] placeholder-zinc-700 transition-all duration-300 disabled:opacity-50"
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    outline: 'none',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = `${COLORS.gold}40`;
+                    e.target.style.background = `${COLORS.gold}05`;
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255,255,255,0.06)';
+                    e.target.style.background = 'rgba(255,255,255,0.02)';
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400 transition-colors"
+                  tabIndex={-1}
                 >
-                  {showPass
-                    ? <EyeOff className="w-4 h-4" />
-                    : <Eye className="w-4 h-4" />
-                  }
+                  {showPass ? (
+                    <EyeOff size={15} />
+                  ) : (
+                    <Eye size={15} />
+                  )}
                 </button>
               </div>
             </div>
 
-            {/* Forgot */}
+            {/* Forgot Password */}
             <div className="flex justify-end">
-              <button type="button" className="font-rajdhani text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-                Forgot password?
+              <button
+                type="button"
+                className="font-rajdhani text-zinc-600 text-[11px] tracking-[0.08em] hover:text-[#C5A059] transition-colors duration-300"
+              >
+                Forgot Password?
               </button>
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 font-orbitron text-xs font-bold tracking-[2px] py-3.5 rounded-xl bg-yellow-500 text-black hover:bg-yellow-400 transition-all duration-300 hover:shadow-[0_0_30px_rgba(234,179,8,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-3 font-orbitron text-[12px] font-bold tracking-[0.15em] py-3.5 rounded-xl transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              style={{
+                background: loading
+                  ? 'rgba(197,160,89,0.20)'
+                  : `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldLight})`,
+                color: '#000000',
+                boxShadow: loading
+                  ? 'none'
+                  : '0 8px 32px rgba(197,160,89,0.25)',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                <>
+                  <div
+                    className="w-4 h-4 border-2 rounded-full animate-spin"
+                    style={{
+                      borderColor: 'rgba(0,0,0,0.2)',
+                      borderTopColor: '#000000',
+                    }}
+                  />
+                  SIGNING IN...
+                </>
               ) : (
                 <>
                   SIGN IN
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight size={14} />
                 </>
               )}
             </button>
           </form>
 
-          {/* Demo hint */}
-          <div className="mt-6 pt-6 border-t border-white/[0.06]">
-            <p className="font-rajdhani text-xs text-zinc-700 text-center">
-              Demo: admin@gym.com / admin123
+          {/* ─── Divider ────────────────────────────────────────────────── */}
+
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="font-rajdhani text-zinc-700 text-[10px] tracking-[0.18em] uppercase">
+              OR
+            </span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+
+          {/* ─── Register Link ──────────────────────────────────────────── */}
+
+          <button
+            onClick={() => navigate('/register')}
+            className="w-full py-3 rounded-xl font-rajdhani text-[12px] font-bold tracking-[0.15em] uppercase transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-2"
+            style={{
+              background: `${COLORS.gold}08`,
+              color: COLORS.gold,
+              border: `1px solid ${COLORS.gold}20`,
+            }}
+          >
+            <Shield size={13} />
+            Create New Account
+          </button>
+
+          {/* ─── Demo Hint ──────────────────────────────────────────────── */}
+
+          <div
+            className="mt-6 pt-5 text-center"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+          >
+            <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.12em] uppercase mb-1">
+              Demo Account
+            </p>
+            <p className="font-rajdhani text-zinc-500 text-[11px]">
+              <span style={{ color: COLORS.gold }}>admin@gymverse.com</span>
+              {' / '}
+              <span style={{ color: COLORS.gold }}>admin123</span>
             </p>
           </div>
         </div>
+
+        {/* ─── Footer ─────────────────────────────────────────────────────── */}
+
+        <p className="text-center font-rajdhani text-zinc-700 text-[11px] tracking-[0.08em] mt-6">
+          © {new Date().getFullYear()} GYMVERSE. Made in India 🇮🇳
+        </p>
       </div>
+
+      {/* Shake Animation */}
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+      `}</style>
     </div>
-  )
+  );
 }
