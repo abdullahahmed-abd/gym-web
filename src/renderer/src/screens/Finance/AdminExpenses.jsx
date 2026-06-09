@@ -1,51 +1,47 @@
-// AdminExpenses.jsx
+// AdminExpenses.jsx — FIXED MODAL Z-INDEX & POSITIONING
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/shared/Layout';
 import {
-  ArrowLeft, Plus, Trash2, X, CheckCircle, TrendingUp, TrendingDown,
-  DollarSign, CreditCard, Wallet, PieChart, BarChart3, ArrowUpRight,
-  ArrowDownRight, Calendar, Filter, Search, Download, ChevronRight,
-  Zap, Building2, Droplets, Wrench, Users, ClipboardList, Pencil,
-  IndianRupee, Receipt, CircleDollarSign, Target, Activity,
-  Eye, Sparkles, ArrowRight, ChevronDown
+  ArrowLeft, Plus, Trash2, X, TrendingUp, TrendingDown,
+  DollarSign, CreditCard, Wallet, BarChart3, ArrowUpRight, ArrowDownRight,
+  Calendar, Search, Receipt, Target, Activity, Zap, Building2,
+  Droplets, Wrench, Users, ClipboardList, Pencil, IndianRupee,
+  Eye, Loader2,
 } from 'lucide-react';
 
 import splashBg from '../../../../../src/assets/splash-bg.jpg';
-import gymLogo from '../../../../../src/assets/gym-logo.png';
+import gymLogo  from '../../../../../src/assets/gym-logo.png';
 
 const SPLASH_BG = splashBg;
-const GYM_LOGO = gymLogo;
+const GYM_LOGO  = gymLogo;
 
-const COLORS = {
-  gold: '#C5A059', goldLight: '#D4B483', goldDark: '#A8873A',
-  green: '#16A34A', greenLight: '#22C55E', greenGlow: 'rgba(22,163,74,0.15)',
-  red: '#DC2626', redLight: '#EF4444', redGlow: 'rgba(220,38,38,0.15)',
-  blue: '#2563EB', blueLight: '#3B82F6',
-  cyan: '#0891B2', cyanLight: '#22D3EE',
-  purple: '#7C3AED', purpleLight: '#A855F7',
-  orange: '#EA580C', orangeLight: '#F97316',
-};
+const GOLD   = '#C5A059';
+const GOLD_L = '#EAB308';
+const RED    = '#EF4444';
+const GREEN  = '#22C55E';
+const WHITE8 = 'rgba(255,255,255,0.08)';
 
 const CATEGORIES = [
-  { id: 'electricity', label: 'Electricity',    icon: Zap,           color: COLORS.gold,        bg: 'rgba(197,160,89,0.10)' },
-  { id: 'staff',       label: 'Staff Salary',   icon: Users,         color: COLORS.blueLight,   bg: 'rgba(59,130,246,0.10)' },
-  { id: 'trainer',     label: 'Trainer Salary', icon: Activity,      color: COLORS.cyanLight,   bg: 'rgba(34,211,238,0.10)' },
-  { id: 'maintenance', label: 'Machine Repair', icon: Wrench,        color: COLORS.redLight,    bg: 'rgba(220,38,38,0.10)'  },
-  { id: 'rent',        label: 'Rent',           icon: Building2,     color: COLORS.purpleLight, bg: 'rgba(168,85,247,0.10)' },
-  { id: 'water',       label: 'Water Bill',     icon: Droplets,      color: COLORS.cyanLight,   bg: 'rgba(6,182,212,0.10)'  },
-  { id: 'other',       label: 'Other',          icon: ClipboardList, color: COLORS.orangeLight, bg: 'rgba(234,88,12,0.10)'  },
-  { id: 'custom',      label: 'Custom',         icon: Pencil,        color: COLORS.purpleLight, bg: 'rgba(124,58,237,0.10)' },
+  { id: 'electricity', label: 'Electricity',    icon: Zap,           color: GOLD },
+  { id: 'staff',       label: 'Staff Salary',   icon: Users,         color: GOLD },
+  { id: 'trainer',     label: 'Trainer Pay',     icon: Activity,      color: GOLD },
+  { id: 'maintenance', label: 'Machine Repair',  icon: Wrench,        color: RED  },
+  { id: 'rent',        label: 'Rent',            icon: Building2,     color: GOLD },
+  { id: 'water',       label: 'Water Bill',      icon: Droplets,      color: GOLD },
+  { id: 'other',       label: 'Other',           icon: ClipboardList, color: GOLD },
+  { id: 'custom',      label: 'Custom',          icon: Pencil,        color: GOLD },
 ];
 
 const INITIAL_EXPENSES = [
-  { id: 'e1', categoryId: 'electricity', label: 'Electricity Bill',  amount: 8500,  note: 'January 2025',    date: '2025-01-15' },
-  { id: 'e2', categoryId: 'staff',       label: 'Staff Salary',      amount: 25000, note: '3 Staff Members', date: '2025-01-01' },
-  { id: 'e3', categoryId: 'trainer',     label: 'Trainer Salary',    amount: 18000, note: '2 Trainers',      date: '2025-01-01' },
+  { id: 'e1', categoryId: 'electricity', label: 'Electricity Bill',  amount: 8500,  note: 'January 2025',     date: '2025-01-15' },
+  { id: 'e2', categoryId: 'staff',       label: 'Staff Salary',      amount: 25000, note: '3 Staff Members',  date: '2025-01-01' },
+  { id: 'e3', categoryId: 'trainer',     label: 'Trainer Salary',    amount: 18000, note: '2 Trainers',       date: '2025-01-01' },
   { id: 'e4', categoryId: 'maintenance', label: 'Treadmill Repair',  amount: 3200,  note: 'Belt replacement', date: '2025-01-10' },
-  { id: 'e5', categoryId: 'rent',        label: 'Gym Rent',          amount: 35000, note: 'January',         date: '2025-01-01' },
-  { id: 'e6', categoryId: 'water',       label: 'Water Bill',        amount: 1800,  note: 'January',         date: '2025-01-12' },
-  { id: 'e7', categoryId: 'other',       label: 'Cleaning Supplies', amount: 1200,  note: 'Monthly',         date: '2025-01-05' },
+  { id: 'e5', categoryId: 'rent',        label: 'Gym Rent',          amount: 35000, note: 'January',          date: '2025-01-01' },
+  { id: 'e6', categoryId: 'water',       label: 'Water Bill',        amount: 1800,  note: 'January',          date: '2025-01-12' },
+  { id: 'e7', categoryId: 'other',       label: 'Cleaning Supplies', amount: 1200,  note: 'Monthly',          date: '2025-01-05' },
 ];
 
 const REVENUE_DATA = {
@@ -58,182 +54,228 @@ const CASH_DATA = {
   yearly:  { cash: 520000, online: 1630000 },
 };
 
-const fmt        = (n) => `₹${n.toLocaleString('en-IN')}`;
-const getCat     = (id) => CATEGORIES.find((c) => c.id === id) || CATEGORIES[6];
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+const fmt        = n => `₹${Number(n).toLocaleString('en-IN')}`;
+const getCat     = id => CATEGORIES.find(c => c.id === id) || CATEGORIES[6];
+const formatDate = d => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* ANIMATED COUNTER                                               */
+/* ANIMATED NUMBER                                                 */
 /* ═══════════════════════════════════════════════════════════════ */
 const AnimatedNumber = ({ value, duration = 1200 }) => {
   const [display, setDisplay] = useState(0);
-  const numValue = typeof value === 'string' ? parseInt(value.replace(/[^0-9]/g, '')) : value;
+  const num = typeof value === 'number' ? value : parseInt(String(value).replace(/[^0-9]/g, '')) || 0;
   useEffect(() => {
-    const startTime = performance.now();
-    const animate = (currentTime) => {
-      const elapsed  = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased    = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.floor(eased * numValue));
-      if (progress < 1) requestAnimationFrame(animate);
+    const t0 = performance.now();
+    const tick = t => {
+      const p = Math.min((t - t0) / duration, 1);
+      setDisplay(Math.floor((1 - Math.pow(1 - p, 3)) * num));
+      if (p < 1) requestAnimationFrame(tick);
     };
-    requestAnimationFrame(animate);
-  }, [numValue, duration]);
+    requestAnimationFrame(tick);
+  }, [num, duration]);
   return display.toLocaleString('en-IN');
 };
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* GLASS PANEL                                                    */
+/* GLASSPANEL                                                      */
 /* ═══════════════════════════════════════════════════════════════ */
 const GlassPanel = ({ children, className = '', onClick, hover = false, borderColor, glow }) => (
-  <div
-    onClick={onClick}
-    className={`
-      relative rounded-3xl overflow-hidden
+  <div onClick={onClick}
+    className={`relative rounded-3xl overflow-hidden
       ${hover ? 'cursor-pointer transition-all duration-500 hover:scale-[1.01] hover:-translate-y-1' : ''}
-      ${onClick ? 'cursor-pointer' : ''}
-      ${className}
-    `}
+      ${onClick ? 'cursor-pointer' : ''} ${className}`}
     style={{
       background: '#000000',
-      border:     `1px solid ${borderColor || 'rgba(255,255,255,0.08)'}`,
-      boxShadow:  glow ? `0 8px 32px ${glow}` : 'none',
-    }}
-  >
+      border: `1px solid ${borderColor || WHITE8}`,
+      backdropFilter: 'blur(24px)',
+      boxShadow: glow ? `0 8px 32px ${glow}` : 'none',
+    }}>
     {children}
   </div>
 );
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* PULSE DOT                                                      */
+/* PULSE DOT                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
-const PulseDot = ({ color = COLORS.greenLight, size = 6 }) => (
+const PulseDot = ({ color = GREEN, size = 8 }) => (
   <div className="relative flex items-center justify-center" style={{ width: size * 3, height: size * 3 }}>
     <span className="absolute rounded-full animate-ping opacity-30"
       style={{ width: size * 2.5, height: size * 2.5, backgroundColor: color }} />
+    <span className="absolute rounded-full animate-pulse opacity-20"
+      style={{ width: size * 1.8, height: size * 1.8, backgroundColor: color }} />
     <span className="relative rounded-full"
       style={{ width: size, height: size, backgroundColor: color, boxShadow: `0 0 ${size * 2}px ${color}40` }} />
   </div>
 );
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* ADD EXPENSE MODAL  ← REDESIGNED                               */
+/* STAT CARD                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
+const StatCard = ({ icon: Icon, label, value, color, sub, change, changeUp }) => (
+  <GlassPanel hover className="group" glow={`${color}08`}>
+    <div className="p-6">
+      <div className="flex items-start justify-between mb-5">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center
+                        transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
+          style={{ background: `linear-gradient(135deg,${color}15,${color}08)`, border: `1px solid ${color}20` }}>
+          <Icon size={20} style={{ color }} />
+        </div>
+        {change && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
+            style={{
+              background: changeUp ? 'rgba(34,197,94,0.10)' : 'rgba(239,68,68,0.10)',
+              border: changeUp ? '1px solid rgba(34,197,94,0.20)' : '1px solid rgba(239,68,68,0.20)',
+            }}>
+            {changeUp
+              ? <ArrowUpRight size={12} className="text-green-400" />
+              : <ArrowDownRight size={12} className="text-red-400" />}
+            <span className={`font-orbitron text-[10px] font-bold ${changeUp ? 'text-green-400' : 'text-red-400'}`}>
+              {change}
+            </span>
+          </div>
+        )}
+      </div>
+      <p className="font-orbitron text-white font-bold text-[32px] leading-none mb-2
+                    transition-all duration-300 group-hover:text-[34px]" style={{ color }}>
+        ₹<AnimatedNumber value={value} />
+      </p>
+      <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase font-semibold">{label}</p>
+      {sub && (
+        <>
+          <div className="h-px bg-gradient-to-r from-white/[0.05] via-white/[0.1] to-white/[0.05] my-3" />
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-1 rounded-full" style={{ backgroundColor: `${color}70` }} />
+            <span className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.1em] uppercase">{sub}</span>
+          </div>
+        </>
+      )}
+    </div>
+  </GlassPanel>
+);
+
 /* ═══════════════════════════════════════════════════════════════ */
-/* ADD EXPENSE MODAL — COMPACT                                    */
+/* ADD EXPENSE MODAL — ✅ PORTALED TO document.body               */
 /* ═══════════════════════════════════════════════════════════════ */
 const AddExpenseModal = ({ onClose, onAdd }) => {
-  const [catId, setCatId] = useState('electricity');
-  const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
+  const [catId, setCatId]             = useState('electricity');
+  const [amount, setAmount]           = useState('');
+  const [note, setNote]               = useState('');
   const [customLabel, setCustomLabel] = useState('');
+  const [adding, setAdding]           = useState(false);
 
-  const selectedCat = getCat(catId);
-  const CatIcon = selectedCat.icon;
+  const cat     = getCat(catId);
+  const CatIcon = cat.icon;
 
-  const handleAdd = () => {
+  // ✅ Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  const handleAdd = async () => {
     if (!amount || isNaN(parseFloat(amount))) return alert('Enter a valid amount');
     if (catId === 'custom' && !customLabel.trim()) return alert('Enter expense name');
+    setAdding(true);
+    await new Promise(r => setTimeout(r, 600));
     onAdd({
       id: `e_${Date.now()}`,
       categoryId: catId,
-      label: catId === 'custom' ? customLabel.trim() : selectedCat.label,
+      label: catId === 'custom' ? customLabel.trim() : cat.label,
       amount: parseFloat(amount),
       note: note.trim(),
       date: new Date().toISOString().split('T')[0],
     });
+    setAdding(false);
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" onClick={onClose} />
+  // ✅ Use createPortal to render modal at document.body level
+  // This ensures it's ABOVE the Layout header, sidebar, and any other z-indexed elements
+  const modalContent = (
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4 sm:p-6"
+      style={{
+        zIndex: 99999,                    // ✅ Above everything
+        background: 'rgba(0,0,0,0.90)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+      }}
+    >
+      {/* ✅ Backdrop click to close */}
+      <div className="absolute inset-0" onClick={onClose} />
 
-      {/* Modal — max height capped */}
+      {/* ✅ Modal card — centered with safe margins */}
       <div
-        className="relative w-full max-w-md rounded-2xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-md rounded-3xl overflow-hidden flex flex-col"
         style={{
-          background: '#0a0a0a',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.8)',
-          maxHeight: 'calc(100vh - 48px)',
+          background: '#000000',
+          border: '1px solid rgba(197,160,89,0.22)',
+          boxShadow: '0 32px 100px rgba(0,0,0,0.95), 0 0 80px rgba(197,160,89,0.08)',
+          maxHeight: 'calc(100vh - 80px)',  // ✅ Safe from top & bottom
+          marginTop: '20px',                // ✅ Extra top safety
+          marginBottom: '20px',
         }}
       >
-        {/* Top accent */}
-        <div
-          className="absolute top-0 left-8 right-8 h-[1.5px]"
-          style={{ background: `linear-gradient(90deg, transparent, ${selectedCat.color}60, transparent)` }}
-        />
+        {/* Gold accent line */}
+        <div className="h-[2px] flex-shrink-0"
+          style={{ background: `linear-gradient(90deg, transparent, ${GOLD}60, transparent)` }} />
 
-        {/* ═══ HEADER — fixed ═══ */}
-        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300"
-              style={{
-                background: `${selectedCat.color}15`,
-                border: `1px solid ${selectedCat.color}30`,
-              }}
-            >
-              <CatIcon size={16} style={{ color: selectedCat.color }} />
+        {/* ═══ HEADER ═══ */}
+        <div className="p-5 sm:p-6 flex items-center justify-between flex-shrink-0"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(197,160,89,0.12)', border: '1px solid rgba(197,160,89,0.22)' }}>
+              <Plus size={18} color={GOLD} />
             </div>
             <div>
-              <h3 className="font-orbitron text-white font-bold text-[13px] tracking-[0.12em]">
+              <h3 className="font-orbitron text-white font-bold text-[14px] sm:text-[15px] tracking-[0.12em]">
                 ADD EXPENSE
               </h3>
-              <p className="font-rajdhani text-zinc-600 text-[9px] tracking-[0.12em] uppercase">
+              <p className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.15em] uppercase">
                 Record new entry
               </p>
             </div>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center border border-white/[0.06]
-                       hover:bg-red-500/10 hover:border-red-500/20 transition-all active:scale-90">
-            <X size={14} className="text-zinc-500" />
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95
+                       hover:bg-red-500/10 hover:border-red-500/20"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <X size={15} color="#71717A" />
           </button>
         </div>
 
         {/* ═══ BODY — scrollable ═══ */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5"
+          style={{ overscrollBehavior: 'contain' }}>
 
           {/* Category */}
           <div>
-            <p className="font-rajdhani text-zinc-500 text-[9px] tracking-[0.2em] uppercase font-bold mb-2">
+            <label className="block font-rajdhani text-zinc-500 text-[10px] tracking-[0.2em] uppercase font-semibold mb-3">
               Category
-            </p>
-            <div className="grid grid-cols-4 gap-1.5">
-              {CATEGORIES.map((cat) => {
-                const sel = catId === cat.id;
-                const Icon = cat.icon;
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {CATEGORIES.map(c => {
+                const sel  = catId === c.id;
+                const Icon = c.icon;
                 return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCatId(cat.id)}
-                    className="group flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl
-                               border transition-all duration-200 active:scale-95"
+                  <button key={c.id} onClick={() => setCatId(c.id)}
+                    className="flex flex-col items-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-200
+                               hover:scale-[1.03] active:scale-95"
                     style={{
-                      background: sel ? `${cat.color}12` : 'transparent',
-                      borderColor: sel ? `${cat.color}40` : 'rgba(255,255,255,0.05)',
-                    }}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center
-                                  transition-all duration-200 group-hover:scale-110"
+                      background:  sel ? 'rgba(197,160,89,0.10)' : 'rgba(255,255,255,0.02)',
+                      borderColor: sel ? 'rgba(197,160,89,0.35)' : 'rgba(255,255,255,0.06)',
+                    }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
                       style={{
-                        background: `${cat.color}${sel ? '20' : '08'}`,
-                        border: `1px solid ${cat.color}${sel ? '30' : '10'}`,
-                      }}
-                    >
-                      <Icon size={14} style={{ color: sel ? cat.color : `${cat.color}50` }} />
+                        background: sel ? 'rgba(197,160,89,0.18)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${sel ? 'rgba(197,160,89,0.30)' : 'rgba(255,255,255,0.06)'}`,
+                      }}>
+                      <Icon size={15} style={{ color: sel ? GOLD : '#52525B' }} />
                     </div>
-                    <span
-                      className="font-rajdhani text-[8px] tracking-[0.08em] uppercase font-bold text-center leading-tight"
-                      style={{ color: sel ? cat.color : '#52525b' }}
-                    >
-                      {cat.label}
+                    <span className="font-rajdhani text-[8px] tracking-[0.08em] uppercase font-bold text-center leading-tight"
+                      style={{ color: sel ? GOLD : '#52525B' }}>
+                      {c.label}
                     </span>
                   </button>
                 );
@@ -241,72 +283,57 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
             </div>
           </div>
 
-          {/* Custom Label */}
+          {/* Custom label */}
           {catId === 'custom' && (
             <div>
-              <p className="font-rajdhani text-zinc-500 text-[9px] tracking-[0.2em] uppercase font-bold mb-2">
+              <label className="block font-rajdhani text-zinc-500 text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">
                 Expense Name
-              </p>
-              <input
-                value={customLabel}
-                onChange={(e) => setCustomLabel(e.target.value)}
-                placeholder="e.g. Gym Towels..."
-                className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-purple-500/20
-                           font-rajdhani text-white text-[13px] outline-none
-                           placeholder:text-zinc-700 focus:border-purple-500/40 transition-colors"
-              />
+              </label>
+              <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <Pencil size={14} color="#52525B" />
+                <input value={customLabel} onChange={e => setCustomLabel(e.target.value)}
+                  placeholder="e.g. Gym Towels..."
+                  className="flex-1 bg-transparent font-rajdhani text-white text-[13px] outline-none
+                             placeholder:text-zinc-700 tracking-wider" />
+              </div>
             </div>
           )}
 
           {/* Amount */}
           <div>
-            <p className="font-rajdhani text-zinc-500 text-[9px] tracking-[0.2em] uppercase font-bold mb-2">
+            <label className="block font-rajdhani text-zinc-500 text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">
               Amount
-            </p>
-            <div
-              className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors
-                          focus-within:border-opacity-50"
-              style={{
-                background: `${selectedCat.color}05`,
-                borderColor: `${selectedCat.color}20`,
-              }}
-            >
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: `${selectedCat.color}12`, border: `1px solid ${selectedCat.color}25` }}
-              >
-                <IndianRupee size={15} style={{ color: selectedCat.color }} />
+            </label>
+            <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl"
+              style={{ background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.20)' }}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(197,160,89,0.12)', border: '1px solid rgba(197,160,89,0.22)' }}>
+                <IndianRupee size={16} color={GOLD} />
               </div>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+              <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
                 placeholder="0"
-                className="flex-1 bg-transparent font-orbitron text-white text-[24px] font-bold
-                           outline-none placeholder:text-zinc-800 tracking-wider"
-              />
+                className="flex-1 bg-transparent font-orbitron text-white text-[24px] sm:text-[28px] font-bold
+                           outline-none placeholder:text-zinc-800 tracking-wider min-w-0" />
               {amount && (
-                <span className="font-rajdhani text-[10px] font-bold px-2 py-1 rounded-md flex-shrink-0"
-                  style={{ color: selectedCat.color, background: `${selectedCat.color}10` }}>
+                <span className="font-orbitron text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-lg flex-shrink-0"
+                  style={{ background: 'rgba(197,160,89,0.12)', color: GOLD }}>
                   {fmt(parseFloat(amount) || 0)}
                 </span>
               )}
             </div>
 
             {/* Quick amounts */}
-            <div className="flex items-center gap-1.5 mt-2">
-              {[500, 1000, 5000, 10000, 25000].map((q) => (
-                <button
-                  key={q}
-                  onClick={() => setAmount(String(q))}
-                  className="px-2 py-1 rounded-md text-[8px] font-orbitron font-bold
-                             transition-all duration-150 hover:scale-105 active:scale-95"
+            <div className="flex items-center gap-1.5 sm:gap-2 mt-2.5 flex-wrap">
+              {[500, 1000, 5000, 10000, 25000].map(q => (
+                <button key={q} onClick={() => setAmount(String(q))}
+                  className="px-2.5 sm:px-3 py-1.5 rounded-xl font-orbitron text-[8px] sm:text-[9px] font-bold
+                             transition-all hover:scale-105"
                   style={{
-                    background: amount === String(q) ? `${selectedCat.color}15` : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${amount === String(q) ? `${selectedCat.color}25` : 'rgba(255,255,255,0.05)'}`,
-                    color: amount === String(q) ? selectedCat.color : '#3f3f46',
-                  }}
-                >
+                    background: amount === String(q) ? 'rgba(197,160,89,0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${amount === String(q) ? 'rgba(197,160,89,0.30)' : 'rgba(255,255,255,0.06)'}`,
+                    color: amount === String(q) ? GOLD : '#52525B',
+                  }}>
                   ₹{q >= 1000 ? `${q / 1000}K` : q}
                 </button>
               ))}
@@ -316,42 +343,44 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
           {/* Note */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="font-rajdhani text-zinc-500 text-[9px] tracking-[0.2em] uppercase font-bold">Note</p>
-              <span className="font-rajdhani text-zinc-700 text-[8px] tracking-wider">Optional</span>
+              <label className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.2em] uppercase font-semibold">
+                Note
+              </label>
+              <span className="font-rajdhani text-zinc-700 text-[9px] tracking-wider">Optional</span>
             </div>
-            <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Add a note..."
-              className="w-full px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.06]
-                         font-rajdhani text-white text-[12px] outline-none
-                         placeholder:text-zinc-700 focus:border-white/[0.12] transition-colors"
-            />
+            <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <Receipt size={14} color="#52525B" />
+              <input value={note} onChange={e => setNote(e.target.value)}
+                placeholder="Add a note..."
+                className="flex-1 bg-transparent font-rajdhani text-white text-[13px] outline-none
+                           placeholder:text-zinc-700 tracking-wider" />
+            </div>
           </div>
         </div>
 
-        {/* ═══ FOOTER — fixed ═══ */}
-        <div className="flex items-center gap-2.5 px-5 py-4 flex-shrink-0"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* ═══ FOOTER — fixed at bottom ═══ */}
+        <div className="p-5 sm:p-6 flex gap-3 flex-shrink-0"
+          style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <button onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-white/[0.08]
-                       font-rajdhani text-zinc-500 font-bold text-[11px] tracking-[0.1em] uppercase
-                       hover:bg-white/[0.04] hover:text-zinc-300 transition-all active:scale-95">
+            className="px-5 py-3 rounded-2xl font-rajdhani text-zinc-400 text-[12px] tracking-[0.12em] uppercase
+                       font-bold transition-all hover:text-white hover:scale-[1.01]"
+            style={{ background: '#000', border: '1px solid rgba(255,255,255,0.10)' }}>
             Cancel
           </button>
-          <button onClick={handleAdd}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl
-                       font-orbitron font-bold text-[11px] tracking-[0.1em] text-black
-                       transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+          <button onClick={handleAdd} disabled={adding}
+            className="flex-1 flex items-center justify-center gap-2.5 py-3 rounded-2xl font-orbitron text-[11px] sm:text-[12px]
+                       font-bold tracking-[0.12em] text-black transition-all duration-300
+                       hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed"
             style={{
-              background: `linear-gradient(135deg, ${selectedCat.color}, ${selectedCat.color}CC)`,
-              boxShadow: `0 4px 20px ${selectedCat.color}30`,
+              background: `linear-gradient(135deg,${GOLD},${GOLD_L})`,
+              boxShadow: '0 8px 32px rgba(197,160,89,0.30)',
             }}>
-            <Plus size={14} />
-            ADD EXPENSE
-            {amount && (
-              <span className="ml-1 px-2 py-0.5 rounded-md text-[9px]"
-                style={{ background: 'rgba(0,0,0,0.20)', color: 'rgba(0,0,0,0.65)' }}>
+            {adding ? <Loader2 size={16} className="animate-spin text-black" /> : <Plus size={16} />}
+            {adding ? 'Adding...' : 'Add Expense'}
+            {amount && !adding && (
+              <span className="ml-1 px-2 py-0.5 rounded-lg text-[9px] font-bold"
+                style={{ background: 'rgba(0,0,0,0.18)', color: 'rgba(0,0,0,0.65)' }}>
                 {fmt(parseFloat(amount) || 0)}
               </span>
             )}
@@ -360,70 +389,59 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
       </div>
     </div>
   );
+
+  // ✅ Portal to document.body — above ALL layout elements
+  return createPortal(modalContent, document.body);
 };
+
 /* ═══════════════════════════════════════════════════════════════ */
-/* EXPENSE ROW                                                    */
+/* EXPENSE ROW                                                     */
 /* ═══════════════════════════════════════════════════════════════ */
 const ExpenseRow = ({ expense, onDelete }) => {
   const cat     = getCat(expense.categoryId);
   const CatIcon = cat.icon;
 
   return (
-    <div
-      className="group flex items-center gap-4 p-4 rounded-2xl
-                  border border-white/[0.04] mb-3 hover:border-white/[0.1]
-                  transition-all duration-300 hover:scale-[1.005]"
-      style={{ background: 'rgba(255,255,255,0.015)' }}
-    >
-      <div
-        className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0
-                    transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
-        style={{
-          background: `${cat.color}12`,
-          border:     `1px solid ${cat.color}25`,
-          boxShadow:  `0 4px 14px ${cat.color}10`,
-        }}
-      >
-        <CatIcon size={18} style={{ color: cat.color }} />
+    <div className="group flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 hover:scale-[1.005]"
+      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0
+                      transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
+        style={{ background: 'rgba(197,160,89,0.10)', border: '1px solid rgba(197,160,89,0.20)',
+                 boxShadow: '0 4px 12px rgba(197,160,89,0.08)' }}>
+        <CatIcon size={18} color={GOLD} />
       </div>
-
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <p className="font-rajdhani font-bold text-white text-[14px] tracking-wide truncate">
+          <p className="font-orbitron text-white font-bold text-[13px] tracking-[0.06em] truncate">
             {expense.label}
           </p>
-          <div className="px-2 py-0.5 rounded-md" style={{ background: `${cat.color}12` }}>
+          <div className="px-2 py-0.5 rounded-lg flex-shrink-0"
+            style={{ background: 'rgba(197,160,89,0.08)', border: '1px solid rgba(197,160,89,0.15)' }}>
             <span className="font-rajdhani text-[8px] tracking-[0.15em] uppercase font-bold"
-              style={{ color: `${cat.color}90` }}>
-              {cat.label}
-            </span>
+              style={{ color: `${GOLD}BB` }}>{cat.label}</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {expense.note && (
-            <p className="font-rajdhani text-zinc-600 text-[11px]">{expense.note}</p>
+            <span className="font-rajdhani text-zinc-500 text-[11px] tracking-wide">{expense.note}</span>
           )}
           <div className="flex items-center gap-1">
             <Calendar size={10} className="text-zinc-700" />
-            <p className="font-rajdhani text-zinc-700 text-[10px] tracking-wider">
+            <span className="font-rajdhani text-zinc-600 text-[10px] tracking-wider">
               {formatDate(expense.date)}
-            </p>
+            </span>
           </div>
         </div>
       </div>
-
-      <div className="flex items-center gap-4">
-        <span className="font-orbitron font-bold text-[15px] block" style={{ color: cat.color }}>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <span className="font-orbitron font-bold text-[15px]" style={{ color: GOLD }}>
           {fmt(expense.amount)}
         </span>
-        <button
-          onClick={() => onDelete(expense.id)}
-          className="w-9 h-9 rounded-xl bg-red-900/[0.15] border border-red-700/[0.2]
-                     flex items-center justify-center opacity-0 group-hover:opacity-100
-                     hover:bg-red-700/[0.25] hover:border-red-600/[0.4]
+        <button onClick={() => onDelete(expense.id)}
+          className="w-9 h-9 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100
                      transition-all duration-300 hover:scale-110 active:scale-95"
-        >
-          <Trash2 size={14} style={{ color: COLORS.redLight }} />
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)' }}>
+          <Trash2 size={14} color={RED} />
         </button>
       </div>
     </div>
@@ -431,56 +449,7 @@ const ExpenseRow = ({ expense, onDelete }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* OVERVIEW STAT CARD                                             */
-/* ═══════════════════════════════════════════════════════════════ */
-const OverviewCard = ({ icon: Icon, label, value, color, sub, trend, trendUp }) => (
-  <GlassPanel hover className="group" glow={`${color}08`}>
-    <div className="p-6">
-      <div className="absolute top-0 left-8 right-8 h-[1px]"
-        style={{ background: `linear-gradient(90deg, transparent, ${color}40, transparent)` }} />
-
-      <div className="flex items-start justify-between mb-5">
-        <div className="w-11 h-11 rounded-2xl flex items-center justify-center
-                        transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
-          style={{ background: `${color}12`, border: `1px solid ${color}25`, boxShadow: `0 4px 20px ${color}12` }}>
-          <Icon size={18} style={{ color }} />
-        </div>
-        {trend && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
-            style={{
-              background: trendUp ? 'rgba(22,163,74,0.10)' : 'rgba(220,38,38,0.10)',
-              border:     trendUp ? '1px solid rgba(22,163,74,0.25)' : '1px solid rgba(220,38,38,0.25)',
-            }}>
-            {trendUp
-              ? <ArrowUpRight   size={11} style={{ color: COLORS.greenLight }} />
-              : <ArrowDownRight size={11} style={{ color: COLORS.redLight   }} />}
-            <span className="font-orbitron text-[9px] font-bold"
-              style={{ color: trendUp ? COLORS.greenLight : COLORS.redLight }}>{trend}</span>
-          </div>
-        )}
-      </div>
-
-      <p className="font-orbitron font-bold text-[28px] leading-none mb-2
-                    transition-all duration-300 group-hover:text-[30px]" style={{ color }}>
-        ₹<AnimatedNumber value={value} />
-      </p>
-      <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.2em] uppercase font-semibold">{label}</p>
-
-      {sub && (
-        <>
-          <div className="h-px bg-gradient-to-r from-white/[0.04] via-white/[0.08] to-white/[0.04] my-3" />
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full" style={{ backgroundColor: `${color}60` }} />
-            <span className="font-rajdhani text-zinc-600 text-[9px] tracking-[0.1em] uppercase">{sub}</span>
-          </div>
-        </>
-      )}
-    </div>
-  </GlassPanel>
-);
-
-/* ═══════════════════════════════════════════════════════════════ */
-/* MAIN COMPONENT                                                 */
+/* MAIN                                                            */
 /* ═══════════════════════════════════════════════════════════════ */
 const AdminExpenses = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -490,30 +459,28 @@ const AdminExpenses = ({ onLogout }) => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery,  setSearchQuery]  = useState('');
 
-  const revenue      = REVENUE_DATA[period];
-  const cash         = CASH_DATA[period];
-  const totalExp     = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const net          = revenue.total - totalExp;
-  const spentPercent = Math.round((totalExp / revenue.total) * 100);
+  const revenue  = REVENUE_DATA[period];
+  const cash     = CASH_DATA[period];
+  const totalExp = expenses.reduce((s, e) => s + e.amount, 0);
+  const net      = revenue.total - totalExp;
+  const spentPct = Math.round((totalExp / revenue.total) * 100);
 
-  const catTotals = CATEGORIES.map((c) => ({
+  const catTotals = CATEGORIES.map(c => ({
     ...c,
-    total: expenses.filter((e) => e.categoryId === c.id).reduce((sum, e) => sum + e.amount, 0),
-    count: expenses.filter((e) => e.categoryId === c.id).length,
-  })).filter((c) => c.total > 0);
+    total: expenses.filter(e => e.categoryId === c.id).reduce((s, e) => s + e.amount, 0),
+    count: expenses.filter(e => e.categoryId === c.id).length,
+  })).filter(c => c.total > 0);
 
   const filtered = expenses
-    .filter((e) => activeFilter === 'all' || e.categoryId === activeFilter)
-    .filter((e) =>
-      searchQuery === '' ||
+    .filter(e => activeFilter === 'all' || e.categoryId === activeFilter)
+    .filter(e =>
+      !searchQuery ||
       e.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (e.note && e.note.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this expense?')) {
-      setExpenses((p) => p.filter((e) => e.id !== id));
-    }
+  const handleDelete = id => {
+    if (window.confirm('Delete this expense?')) setExpenses(p => p.filter(e => e.id !== id));
   };
 
   return (
@@ -521,15 +488,13 @@ const AdminExpenses = ({ onLogout }) => {
       <div className="relative min-h-screen">
         <div className="fixed inset-0 z-0"
           style={{ backgroundImage: `url(${SPLASH_BG})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-        <div className="fixed inset-0 z-[1]"
-          style={{
-            background: `
-              radial-gradient(ellipse at 20% 0%,   rgba(197,160,89,0.05)  0%, transparent 50%),
-              radial-gradient(ellipse at 80% 100%, rgba(220,38,38,0.04)   0%, transparent 50%),
-              linear-gradient(180deg, rgba(0,0,0,0.93) 0%, rgba(0,0,0,0.97) 40%, #000000 100%)
-            `,
-          }}
-        />
+        <div className="fixed inset-0 z-[1]" style={{
+          background: `
+            radial-gradient(ellipse at 20% 0%, rgba(197,160,89,0.05) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 100%, rgba(168,85,247,0.04) 0%, transparent 50%),
+            linear-gradient(180deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.97) 40%, #000000 100%)
+          `,
+        }} />
 
         <div className="relative z-10 p-8 lg:p-10 space-y-8 max-w-[1600px] mx-auto">
 
@@ -537,15 +502,14 @@ const AdminExpenses = ({ onLogout }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5">
               <button onClick={() => navigate(-1)}
-                className="w-12 h-12 rounded-2xl bg-black border border-white/[0.08]
-                           flex items-center justify-center hover:bg-white/[0.04]
-                           transition-all duration-300 hover:scale-105 active:scale-95">
-                <ArrowLeft size={18} className="text-zinc-500" />
+                className="group w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 hover:scale-105"
+                style={{ background: '#000', border: WHITE8 }}>
+                <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
               </button>
               <div>
-                <p className="font-rajdhani text-[11px] tracking-[0.3em] uppercase font-bold mb-1 flex items-center gap-2"
-                  style={{ color: COLORS.gold }}>
-                  <span>Financial Overview</span>
+                <p className="font-rajdhani text-[12px] tracking-[0.3em] uppercase font-bold mb-1 flex items-center gap-2"
+                  style={{ color: GOLD }}>
+                  Financial Overview
                   <span className="text-white/20">•</span>
                   <span className="text-white/40">{period === 'monthly' ? 'This Month' : 'This Year'}</span>
                 </p>
@@ -557,232 +521,241 @@ const AdminExpenses = ({ onLogout }) => {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex bg-black border border-white/[0.08] rounded-2xl p-1.5">
-                {['monthly', 'yearly'].map((p) => (
+              <GlassPanel className="flex p-1.5 gap-1">
+                {['monthly', 'yearly'].map(p => (
                   <button key={p} onClick={() => setPeriod(p)}
-                    className={`px-5 py-2.5 rounded-xl text-[11px] font-rajdhani font-bold
-                                tracking-[0.15em] uppercase transition-all duration-300
-                                ${period === p ? 'bg-white/[0.08] text-white border border-white/[0.12]' : 'text-zinc-600 hover:text-zinc-400'}`}>
+                    className="px-5 py-2 rounded-xl font-rajdhani text-[11px] font-bold tracking-[0.12em] uppercase transition-all duration-300"
+                    style={{
+                      background: period === p ? 'rgba(197,160,89,0.12)' : 'transparent',
+                      border: period === p ? '1px solid rgba(197,160,89,0.25)' : '1px solid transparent',
+                      color: period === p ? GOLD : '#52525B',
+                    }}>
                     {p === 'monthly' ? 'Monthly' : 'Yearly'}
                   </button>
                 ))}
-              </div>
+              </GlassPanel>
 
               <button onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl font-rajdhani font-bold
-                           text-[12px] tracking-[0.15em] uppercase text-black
-                           transition-all duration-300 hover:scale-105 active:scale-95"
+                className="group flex items-center gap-3 h-12 px-6 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
                 style={{
-                  background: `linear-gradient(135deg, ${COLORS.gold} 0%, ${COLORS.goldLight} 100%)`,
-                  boxShadow:  `0 8px 32px rgba(197,160,89,0.30)`,
+                  background: `linear-gradient(135deg,${GOLD},${GOLD_L})`,
+                  boxShadow: '0 8px 32px rgba(197,160,89,0.30)', color: '#000',
                 }}>
-                <Plus size={16} />
-                Add Expense
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-black/10 transition-all group-hover:scale-110 group-hover:rotate-12">
+                  <Plus size={16} />
+                </div>
+                <span className="font-orbitron text-[11px] font-bold tracking-[0.15em]">ADD EXPENSE</span>
               </button>
             </div>
           </div>
 
-          {/* TOP METRIC CARDS */}
+          {/* STAT CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <OverviewCard icon={TrendingUp}        label="Total Revenue" value={revenue.total} color={COLORS.green}       trend="+12%" trendUp={true}  sub={period === 'monthly' ? 'this month' : 'annual'} />
-            <OverviewCard icon={TrendingDown}       label="Total Expenses" value={totalExp}    color={COLORS.red}         trend="-5%"  trendUp={false} sub={`${expenses.length} transactions`} />
-            <OverviewCard icon={CircleDollarSign}   label="Net Profit"    value={Math.abs(net)} color={net >= 0 ? COLORS.gold : COLORS.red} trend={net >= 0 ? '+8%' : '-3%'} trendUp={net >= 0} sub={net >= 0 ? 'profit margin' : 'loss recorded'} />
-            <OverviewCard icon={Target}             label="Budget Used"   value={totalExp}      color={COLORS.purpleLight} sub={`${spentPercent}% of revenue spent`} />
+            <StatCard icon={TrendingUp}   label="Total Revenue"  value={revenue.total}  color={GREEN} change="+12%" changeUp sub="memberships + others" />
+            <StatCard icon={TrendingDown}  label="Total Expenses" value={totalExp}       color={RED}   change="-5%"  changeUp={false} sub={`${expenses.length} transactions`} />
+            <StatCard icon={DollarSign}    label="Net Profit"     value={Math.abs(net)}  color={GOLD}  change={net >= 0 ? '+8%' : '-3%'} changeUp={net >= 0} sub={net >= 0 ? 'profit this period' : 'loss recorded'} />
+            <StatCard icon={Target}        label="Budget Used"    value={totalExp}       color={net >= 0 ? GOLD : RED} sub={`${spentPct}% of revenue spent`} />
           </div>
 
           {/* MAIN GRID */}
           <div className="grid grid-cols-12 gap-6">
 
-            {/* LEFT COLUMN */}
+            {/* LEFT (5 cols) */}
             <div className="col-span-12 xl:col-span-5 space-y-6">
 
-              {/* Revenue vs Expense */}
-              <GlassPanel className="relative overflow-hidden" borderColor={`${COLORS.green}20`} glow={`${COLORS.green}06`}>
+              {/* Overview */}
+              <GlassPanel borderColor="rgba(197,160,89,0.15)" glow="rgba(197,160,89,0.06)">
+                <div className="absolute top-0 left-10 right-10 h-[2px]"
+                  style={{ background: 'linear-gradient(90deg,transparent,rgba(197,160,89,0.45),transparent)' }} />
                 {GYM_LOGO && (
                   <img src={GYM_LOGO} alt=""
-                    className="absolute right-6 top-1/2 -translate-y-1/2 w-[180px] h-[90px]
-                               object-contain opacity-[0.03] pointer-events-none" />
+                    className="absolute right-6 top-1/2 -translate-y-1/2 w-[180px] h-[90px] object-contain opacity-[0.03] pointer-events-none" />
                 )}
-                <div className="p-7 relative z-10">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-1.5 h-8 rounded-full"
-                      style={{ background: `linear-gradient(to bottom, ${COLORS.greenLight}, ${COLORS.green}30)` }} />
+                <div className="p-8 relative z-10">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-[#C5A059] to-[#C5A059]/20" />
                     <div>
-                      <h3 className="font-orbitron text-white font-bold text-[14px] tracking-[0.15em]">OVERVIEW</h3>
-                      <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.15em] uppercase">Revenue vs Expenses</p>
+                      <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em]">OVERVIEW</h3>
+                      <p className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.15em] uppercase">Revenue vs Expenses</p>
                     </div>
                   </div>
 
+                  {/* Revenue */}
                   <div className="mb-5">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.green }} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                         <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.12em] uppercase font-semibold">Revenue</span>
                       </div>
-                      <span className="font-orbitron text-[14px] font-bold" style={{ color: COLORS.green }}>{fmt(revenue.total)}</span>
+                      <span className="font-orbitron text-green-400 text-[14px] font-bold">{fmt(revenue.total)}</span>
                     </div>
-                    <div className="h-3 bg-white/[0.04] rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-1000"
-                        style={{ width: '100%', background: `linear-gradient(90deg, ${COLORS.green}, ${COLORS.greenLight})`, boxShadow: `0 0 16px ${COLORS.green}40` }} />
+                    <div className="h-2.5 bg-white/[0.05] rounded-full overflow-hidden">
+                      <div className="h-full rounded-full"
+                        style={{ width: '100%', background: 'linear-gradient(90deg,#22C55E,#16A34A)', boxShadow: '0 0 12px rgba(34,197,94,0.35)' }} />
                     </div>
                   </div>
 
-                  <div className="mb-5">
+                  {/* Expenses */}
+                  <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.red }} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
                         <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.12em] uppercase font-semibold">Expenses</span>
                       </div>
-                      <span className="font-orbitron text-[14px] font-bold" style={{ color: COLORS.red }}>{fmt(totalExp)}</span>
+                      <span className="font-orbitron text-red-400 text-[14px] font-bold">{fmt(totalExp)}</span>
                     </div>
-                    <div className="h-3 bg-white/[0.04] rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-white/[0.05] rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-1000"
-                        style={{ width: `${spentPercent}%`, background: `linear-gradient(90deg, ${COLORS.red}, ${COLORS.redLight})`, boxShadow: `0 0 16px ${COLORS.red}40` }} />
+                        style={{ width: `${spentPct}%`, background: 'linear-gradient(90deg,#EF4444,#DC2626)', boxShadow: '0 0 12px rgba(239,68,68,0.35)' }} />
                     </div>
                   </div>
 
-                  <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent my-5" />
+                  <div className="h-px mb-6" style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)' }} />
 
+                  {/* Net */}
                   <div className="flex items-center justify-between px-5 py-4 rounded-2xl"
                     style={{
-                      background: net >= 0 ? `${COLORS.gold}08` : `${COLORS.red}08`,
-                      border:     net >= 0 ? `1px solid ${COLORS.gold}20` : `1px solid ${COLORS.red}20`,
+                      background: net >= 0 ? 'rgba(197,160,89,0.07)' : 'rgba(239,68,68,0.07)',
+                      border: net >= 0 ? '1px solid rgba(197,160,89,0.20)' : '1px solid rgba(239,68,68,0.20)',
                     }}>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ background: net >= 0 ? `${COLORS.gold}15` : `${COLORS.red}15` }}>
-                        {net >= 0 ? <TrendingUp size={16} style={{ color: COLORS.gold }} /> : <TrendingDown size={16} style={{ color: COLORS.red }} />}
+                        style={{ background: net >= 0 ? 'rgba(197,160,89,0.15)' : 'rgba(239,68,68,0.12)' }}>
+                        {net >= 0 ? <TrendingUp size={18} color={GOLD} /> : <TrendingDown size={18} color={RED} />}
                       </div>
                       <div>
-                        <p className="font-rajdhani text-[11px] tracking-[0.12em] uppercase font-bold"
-                          style={{ color: net >= 0 ? COLORS.gold : COLORS.red }}>Net {net >= 0 ? 'Profit' : 'Loss'}</p>
-                        <p className="font-rajdhani text-zinc-600 text-[9px] tracking-[0.1em] uppercase">{100 - spentPercent}% margin</p>
+                        <p className="font-orbitron font-bold text-[12px] tracking-[0.12em]"
+                          style={{ color: net >= 0 ? GOLD : RED }}>NET {net >= 0 ? 'PROFIT' : 'LOSS'}</p>
+                        <p className="font-rajdhani text-zinc-600 text-[10px] tracking-wider">{100 - spentPct}% margin</p>
                       </div>
                     </div>
-                    <span className="font-orbitron font-bold text-[20px]"
-                      style={{ color: net >= 0 ? COLORS.gold : COLORS.red }}>{fmt(Math.abs(net))}</span>
+                    <span className="font-orbitron font-extralight text-[26px] leading-none"
+                      style={{ color: net >= 0 ? GOLD : RED }}>{fmt(Math.abs(net))}</span>
                   </div>
                 </div>
               </GlassPanel>
 
-              {/* Cash Collection */}
-              <GlassPanel borderColor={`${COLORS.blue}20`} glow={`${COLORS.blue}05`}>
-                <div className="p-7">
+              {/* Collection */}
+              <GlassPanel>
+                <div className="p-8">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-1.5 h-8 rounded-full"
-                      style={{ background: `linear-gradient(to bottom, ${COLORS.blueLight}, ${COLORS.blue}30)` }} />
+                    <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-[#C5A059] to-[#C5A059]/20" />
                     <div>
-                      <h3 className="font-orbitron text-white font-bold text-[14px] tracking-[0.15em]">COLLECTION</h3>
-                      <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.15em] uppercase">Payment method breakdown</p>
+                      <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em]">COLLECTION</h3>
+                      <p className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.15em] uppercase">Payment breakdown</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      { icon: Wallet, label: 'CASH', value: cash.cash, color: COLORS.green, percent: Math.round((cash.cash / (cash.cash + cash.online)) * 100) },
-                      { icon: CreditCard, label: 'ONLINE', value: cash.online, color: COLORS.blueLight, percent: Math.round((cash.online / (cash.cash + cash.online)) * 100) },
-                    ].map((item) => (
-                      <div key={item.label} className="group rounded-2xl p-5 border transition-all duration-300 hover:scale-[1.02]"
-                        style={{ background: `${item.color}06`, borderColor: `${item.color}18` }}>
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
-                          style={{ background: `${item.color}12`, border: `1px solid ${item.color}22` }}>
-                          <item.icon size={16} style={{ color: item.color }} />
+                      { icon: Wallet, label: 'CASH', value: cash.cash, pct: Math.round((cash.cash / (cash.cash + cash.online)) * 100) },
+                      { icon: CreditCard, label: 'ONLINE', value: cash.online, pct: Math.round((cash.online / (cash.cash + cash.online)) * 100) },
+                    ].map(item => (
+                      <div key={item.label} className="group rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02]"
+                        style={{ background: 'rgba(197,160,89,0.05)', border: '1px solid rgba(197,160,89,0.15)' }}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all group-hover:scale-110 group-hover:rotate-6"
+                          style={{ background: 'rgba(197,160,89,0.12)', border: '1px solid rgba(197,160,89,0.22)' }}>
+                          <item.icon size={16} color={GOLD} />
                         </div>
-                        <p className="font-rajdhani font-bold text-[10px] tracking-[0.2em] uppercase mb-1" style={{ color: `${item.color}80` }}>{item.label}</p>
+                        <p className="font-rajdhani font-bold text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: `${GOLD}80` }}>{item.label}</p>
                         <p className="font-orbitron text-white font-bold text-[20px] mb-3">{fmt(item.value)}</p>
-                        <div className="h-[3px] bg-white/[0.04] rounded-full overflow-hidden">
+                        <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all duration-1000"
-                            style={{ width: `${item.percent}%`, background: `linear-gradient(90deg, ${item.color}, ${item.color}70)`, boxShadow: `0 0 8px ${item.color}35` }} />
+                            style={{ width: `${item.pct}%`, background: `linear-gradient(90deg,${GOLD},${GOLD_L})`, boxShadow: '0 0 8px rgba(197,160,89,0.30)' }} />
                         </div>
-                        <p className="font-orbitron text-[10px] font-bold mt-2" style={{ color: `${item.color}80` }}>{item.percent}%</p>
+                        <p className="font-orbitron text-[10px] font-bold mt-2" style={{ color: `${GOLD}80` }}>{item.pct}%</p>
                       </div>
                     ))}
                   </div>
                 </div>
               </GlassPanel>
 
-              {/* Revenue Breakdown */}
-              <GlassPanel borderColor={`${COLORS.gold}20`} glow={`${COLORS.gold}05`}>
-                <div className="p-7">
+              {/* Revenue */}
+              <GlassPanel borderColor="rgba(197,160,89,0.12)" glow="rgba(197,160,89,0.04)">
+                <div className="absolute top-0 left-8 right-8 h-[2px]"
+                  style={{ background: 'linear-gradient(90deg,transparent,rgba(197,160,89,0.35),transparent)' }} />
+                <div className="p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-8 rounded-full"
-                        style={{ background: `linear-gradient(to bottom, ${COLORS.gold}, ${COLORS.gold}20)` }} />
+                      <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-[#C5A059] to-[#C5A059]/20" />
                       <div>
-                        <h3 className="font-orbitron text-white font-bold text-[14px] tracking-[0.15em]">REVENUE</h3>
-                        <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.15em] uppercase">Income breakdown</p>
+                        <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em]">REVENUE</h3>
+                        <p className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.15em] uppercase">Income sources</p>
                       </div>
                     </div>
-                    <span className="font-orbitron text-[16px] font-bold" style={{ color: COLORS.green }}>{fmt(revenue.total)}</span>
+                    <span className="font-orbitron font-extralight text-[24px]" style={{ color: GOLD }}>{fmt(revenue.total)}</span>
                   </div>
                   {[
-                    { label: 'Memberships', value: revenue.memberships, color: COLORS.gold, icon: CreditCard },
-                    { label: 'Others', value: revenue.others, color: COLORS.cyanLight, icon: Receipt },
-                  ].map((item, i) => (
-                    <div key={i} className="group flex items-center gap-4 py-4 border-b border-white/[0.04] last:border-0
-                                            hover:bg-white/[0.02] rounded-xl px-3 transition-all duration-300 -mx-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                        style={{ background: `${item.color}10`, border: `1px solid ${item.color}18` }}>
-                        <item.icon size={14} style={{ color: item.color }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-rajdhani text-zinc-400 text-[12px] font-semibold tracking-wider">{item.label}</p>
-                        <div className="h-[3px] bg-white/[0.04] rounded-full overflow-hidden mt-2">
-                          <div className="h-full rounded-full transition-all duration-1000"
-                            style={{ width: `${Math.round((item.value / revenue.total) * 100)}%`, background: `linear-gradient(90deg, ${item.color}, ${item.color}70)`, boxShadow: `0 0 8px ${item.color}30` }} />
+                    { label: 'Memberships', value: revenue.memberships, icon: CreditCard },
+                    { label: 'Others', value: revenue.others, icon: Receipt },
+                  ].map((item, i) => {
+                    const pct = Math.round((item.value / revenue.total) * 100);
+                    return (
+                      <div key={i} className="group flex items-center gap-4 py-4 rounded-2xl px-3 -mx-3 transition-all hover:bg-white/[0.02]"
+                        style={{ borderBottom: i === 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-110"
+                          style={{ background: 'rgba(197,160,89,0.10)', border: '1px solid rgba(197,160,89,0.18)' }}>
+                          <item.icon size={15} color={GOLD} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-rajdhani text-zinc-300 text-[12px] font-semibold tracking-wider mb-2">{item.label}</p>
+                          <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-1000"
+                              style={{ width: `${pct}%`, background: `linear-gradient(90deg,${GOLD},${GOLD_L})`, boxShadow: '0 0 8px rgba(197,160,89,0.30)' }} />
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-orbitron text-white text-[14px] font-bold block">{fmt(item.value)}</span>
+                          <span className="font-orbitron text-[10px] font-bold" style={{ color: `${GOLD}80` }}>{pct}%</span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="font-orbitron text-white text-[14px] font-bold block">{fmt(item.value)}</span>
-                        <span className="font-rajdhani text-zinc-600 text-[10px] tracking-wider">{Math.round((item.value / revenue.total) * 100)}%</span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </GlassPanel>
             </div>
 
-            {/* RIGHT COLUMN */}
+            {/* RIGHT (7 cols) */}
             <div className="col-span-12 xl:col-span-7 space-y-6">
 
-              {/* Category Breakdown */}
-              <GlassPanel borderColor={`${COLORS.red}20`} glow={`${COLORS.red}05`}>
-                <div className="p-7">
+              {/* Categories */}
+              <GlassPanel borderColor="rgba(239,68,68,0.15)" glow="rgba(239,68,68,0.04)">
+                <div className="p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-8 rounded-full"
-                        style={{ background: `linear-gradient(to bottom, ${COLORS.redLight}, ${COLORS.red}30)` }} />
+                      <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-red-400 to-red-400/20" />
                       <div>
-                        <h3 className="font-orbitron text-white font-bold text-[14px] tracking-[0.15em]">EXPENSE CATEGORIES</h3>
-                        <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.15em] uppercase">Spending distribution</p>
+                        <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em]">EXPENSE BREAKDOWN</h3>
+                        <p className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.15em] uppercase">By category</p>
                       </div>
                     </div>
-                    <span className="font-orbitron text-[16px] font-bold" style={{ color: COLORS.red }}>{fmt(totalExp)}</span>
+                    <span className="font-orbitron text-red-400 font-extralight text-[22px]">{fmt(totalExp)}</span>
                   </div>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {catTotals.map((cat) => {
+                    {catTotals.map(cat => {
                       const CatIcon = cat.icon;
-                      const percent = Math.round((cat.total / totalExp) * 100);
+                      const pct     = Math.round((cat.total / totalExp) * 100);
                       const active  = activeFilter === cat.id;
                       return (
                         <button key={cat.id} onClick={() => setActiveFilter(active ? 'all' : cat.id)}
                           className="group text-left p-4 rounded-2xl border transition-all duration-300 hover:scale-[1.02]"
                           style={{
-                            background:  active ? `${cat.color}12` : 'rgba(255,255,255,0.015)',
-                            borderColor: active ? `${cat.color}35` : 'rgba(255,255,255,0.07)',
-                            boxShadow:   active ? `0 4px 20px ${cat.color}12` : 'none',
+                            background: active ? 'rgba(197,160,89,0.10)' : 'rgba(255,255,255,0.02)',
+                            borderColor: active ? 'rgba(197,160,89,0.28)' : 'rgba(255,255,255,0.06)',
+                            boxShadow: active ? '0 4px 20px rgba(197,160,89,0.10)' : 'none',
                           }}>
                           <div className="flex items-center justify-between mb-3">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                              style={{ background: `${cat.color}12` }}>
-                              <CatIcon size={14} style={{ color: cat.color }} />
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-6"
+                              style={{ background: active ? 'rgba(197,160,89,0.18)' : 'rgba(197,160,89,0.08)' }}>
+                              <CatIcon size={14} color={active ? GOLD : `${GOLD}70`} />
                             </div>
-                            <span className="font-orbitron text-[9px] font-bold" style={{ color: `${cat.color}90` }}>{percent}%</span>
+                            <span className="font-orbitron text-[9px] font-bold" style={{ color: active ? GOLD : '#52525B' }}>{pct}%</span>
                           </div>
-                          <p className="font-orbitron text-white font-bold text-[14px] mb-1">{fmt(cat.total)}</p>
-                          <p className="font-rajdhani text-[9px] tracking-[0.12em] uppercase font-semibold" style={{ color: `${cat.color}80` }}>{cat.label}</p>
-                          <div className="h-[2px] bg-white/[0.04] rounded-full overflow-hidden mt-3">
+                          <p className="font-orbitron text-white font-bold text-[14px] mb-1 truncate">{fmt(cat.total)}</p>
+                          <p className="font-rajdhani text-[9px] tracking-[0.12em] uppercase font-semibold mb-3 truncate"
+                            style={{ color: active ? `${GOLD}BB` : '#52525B' }}>{cat.label}</p>
+                          <div className="h-[2px] bg-white/[0.05] rounded-full overflow-hidden">
                             <div className="h-full rounded-full transition-all duration-1000"
-                              style={{ width: `${percent}%`, background: `linear-gradient(90deg, ${cat.color}, ${cat.color}60)`, boxShadow: `0 0 6px ${cat.color}30` }} />
+                              style={{ width: `${pct}%`, background: `linear-gradient(90deg,${GOLD},${GOLD_L})`, boxShadow: '0 0 6px rgba(197,160,89,0.25)' }} />
                           </div>
                         </button>
                       );
@@ -792,79 +765,83 @@ const AdminExpenses = ({ onLogout }) => {
               </GlassPanel>
 
               {/* Transactions */}
-              <GlassPanel className="flex flex-col" borderColor="rgba(255,255,255,0.07)">
-                <div className="p-6 border-b border-white/[0.05]">
+              <GlassPanel className="flex flex-col">
+                <div className="p-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-white/40 to-white/[0.05]" />
                       <div>
-                        <h3 className="font-orbitron text-white font-bold text-[14px] tracking-[0.15em]">TRANSACTIONS</h3>
-                        <p className="font-rajdhani text-zinc-600 text-[10px] tracking-[0.15em] uppercase">
-                          {filtered.length} {activeFilter !== 'all' ? getCat(activeFilter).label : ''} expenses
+                        <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em]">TRANSACTIONS</h3>
+                        <p className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.15em] uppercase">
+                          {filtered.length} {activeFilter !== 'all' ? getCat(activeFilter).label : ''} entries
                         </p>
                       </div>
                     </div>
                     {activeFilter !== 'all' && (
                       <button onClick={() => setActiveFilter('all')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08]
-                                   hover:bg-red-900/[0.15] hover:border-red-700/[0.2] transition-all duration-200">
-                        <X size={12} className="text-zinc-500" />
-                        <span className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.12em] uppercase font-bold">Clear</span>
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all hover:scale-105"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        <X size={10} className="text-zinc-500" />
+                        <span className="font-rajdhani text-zinc-400 text-[10px] tracking-wider uppercase font-bold">Clear</span>
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.06]
-                                  focus-within:border-white/[0.15] transition-colors duration-200">
-                    <Search size={16} className="text-zinc-600" />
-                    <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <Search size={15} className="text-zinc-600 flex-shrink-0" />
+                    <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                       placeholder="Search expenses..."
                       className="flex-1 bg-transparent font-rajdhani text-white text-[13px] outline-none placeholder:text-zinc-700 tracking-wider" />
                     {searchQuery && (
                       <button onClick={() => setSearchQuery('')}
-                        className="w-6 h-6 rounded-lg bg-white/[0.06] flex items-center justify-center hover:bg-white/[0.1] transition-all">
-                        <X size={10} className="text-zinc-500" />
+                        className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/[0.06] transition-colors"
+                        style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <X size={11} className="text-zinc-500" />
                       </button>
                     )}
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 max-h-[600px]">
+                <div className="flex-1 overflow-y-auto p-6 space-y-3 max-h-[520px]">
                   {filtered.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16">
-                      <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-                        <Receipt size={24} className="text-zinc-700" />
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <Receipt size={26} className="text-zinc-800" strokeWidth={1.5} />
                       </div>
-                      <p className="font-orbitron text-zinc-600 text-[13px] tracking-wider mb-1">No expenses found</p>
+                      <p className="font-orbitron text-zinc-600 text-[13px] tracking-[0.15em] mb-2">NO EXPENSES FOUND</p>
                       <p className="font-rajdhani text-zinc-700 text-[11px] tracking-wider">
                         {searchQuery ? 'Try a different search' : 'Add your first expense'}
                       </p>
                     </div>
                   ) : (
-                    filtered.map((exp) => <ExpenseRow key={exp.id} expense={exp} onDelete={handleDelete} />)
+                    filtered.map(exp => <ExpenseRow key={exp.id} expense={exp} onDelete={handleDelete} />)
                   )}
                 </div>
 
                 {filtered.length > 0 && (
-                  <div className="px-6 py-4 border-t border-white/[0.05]">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                          style={{ background: `${COLORS.red}10`, border: `1px solid ${COLORS.red}20` }}>
-                          <BarChart3 size={14} style={{ color: COLORS.redLight }} />
-                        </div>
-                        <div>
-                          <p className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.12em] uppercase font-semibold">
-                            {activeFilter !== 'all' ? `${getCat(activeFilter).label} Total` : 'Filtered Total'}
-                          </p>
-                          <p className="font-orbitron font-bold text-[16px]" style={{ color: COLORS.red }}>
-                            {fmt(filtered.reduce((sum, e) => sum + e.amount, 0))}
-                          </p>
-                        </div>
+                  <div className="p-5 flex items-center justify-between"
+                    style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                        style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                        <BarChart3 size={16} color={RED} />
                       </div>
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                        <Receipt size={12} className="text-zinc-600" />
-                        <span className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.12em] uppercase font-bold">{filtered.length} entries</span>
+                      <div>
+                        <p className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.12em] uppercase font-semibold">
+                          {activeFilter !== 'all' ? `${getCat(activeFilter).label} Total` : 'Filtered Total'}
+                        </p>
+                        <p className="font-orbitron font-bold text-[18px]" style={{ color: RED }}>
+                          {fmt(filtered.reduce((s, e) => s + e.amount, 0))}
+                        </p>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <Eye size={12} className="text-zinc-600" />
+                      <span className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.12em] uppercase font-bold">
+                        {filtered.length} entries
+                      </span>
                     </div>
                   </div>
                 )}
@@ -874,10 +851,11 @@ const AdminExpenses = ({ onLogout }) => {
         </div>
       </div>
 
+      {/* ✅ Modal renders via portal — always above everything */}
       {showModal && (
         <AddExpenseModal
           onClose={() => setShowModal(false)}
-          onAdd={(exp) => { setExpenses((p) => [exp, ...p]); setShowModal(false); }}
+          onAdd={exp => { setExpenses(p => [exp, ...p]); setShowModal(false); }}
         />
       )}
     </Layout>

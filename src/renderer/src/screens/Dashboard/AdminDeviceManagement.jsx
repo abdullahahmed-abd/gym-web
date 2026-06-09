@@ -1,121 +1,42 @@
+// AdminDeviceManagement.jsx - DASHBOARD-MATCHING UI
 import React, { useState, useCallback } from 'react';
 import Layout from '../../components/shared/Layout';
 import {
-  Monitor,
-  Laptop,
-  Smartphone,
-  Shield,
-  Crown,
-  Calendar,
-  HardDrive,
-  Trash2,
-  CheckCircle,
-  AlertTriangle,
-  Activity,
-  X,
-  Loader2,
-  WifiOff,
+  Monitor, Laptop, Smartphone, Shield, Crown, Calendar,
+  HardDrive, Trash2, CheckCircle, AlertTriangle, Activity,
+  X, Loader2, WifiOff, ChevronRight, Plus, Lock,
+  Users, Bell, BarChart3,
 } from 'lucide-react';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+const GOLD      = '#C5A059';
+const GOLD_L    = '#EAB308';
+const MAX_DEV   = 3;
 
-const COLORS = {
-  gold: {
-    base: '#C5A059',
-    bg08: 'rgba(197,160,89,0.08)',
-    bg10: 'rgba(197,160,89,0.10)',
-    bg12: 'rgba(197,160,89,0.12)',
-    bg15: 'rgba(197,160,89,0.15)',
-    bg20: 'rgba(197,160,89,0.20)',
-    bg25: 'rgba(197,160,89,0.25)',
-    border15: 'rgba(197,160,89,0.15)',
-    border20: 'rgba(197,160,89,0.20)',
-    border25: 'rgba(197,160,89,0.25)',
-  },
-  red: {
-    base: '#EF4444',
-    bg08: 'rgba(239,68,68,0.08)',
-    bg10: 'rgba(239,68,68,0.10)',
-    bg15: 'rgba(239,68,68,0.15)',
-    border20: 'rgba(239,68,68,0.20)',
-  },
-  green: {
-    base: '#22C55E',
-    bg10: 'rgba(34,197,94,0.10)',
-    border20: 'rgba(34,197,94,0.20)',
-  },
-  white: {
-    bg04: 'rgba(255,255,255,0.04)',
-    bg05: 'rgba(255,255,255,0.05)',
-    border08: 'rgba(255,255,255,0.08)',
-    border15: 'rgba(255,255,255,0.15)',
-  },
-};
+const SUB = { plan: 'Premium', maxDevices: MAX_DEV, expiresAt: '15 Dec 2026' };
 
-const SUBSCRIPTION = {
-  plan: 'Premium',
-  maxDevices: 5,
-  expiresAt: '15 Dec 2026',
-};
-
-const INITIAL_DEVICES = [
-  {
-    id: 1,
-    name: 'Dell Inspiron',
-    type: 'desktop',
-    os: 'Windows 11 Pro',
-    lastActive: '2 min ago',
-    current: true,
-  },
-  {
-    id: 2,
-    name: 'MacBook Pro',
-    type: 'laptop',
-    os: 'macOS Sonoma',
-    lastActive: 'Yesterday',
-    current: false,
-  },
-  {
-    id: 3,
-    name: 'Samsung Galaxy S24',
-    type: 'mobile',
-    os: 'Android 14',
-    lastActive: '3 days ago',
-    current: false,
-  },
+const INIT_DEVICES = [
+  { id: 1, name: 'Dell Inspiron',      type: 'desktop', os: 'Windows 11 Pro', lastActive: '2 min ago',  current: true  },
+  { id: 2, name: 'MacBook Pro',        type: 'laptop',  os: 'macOS Sonoma',   lastActive: 'Yesterday',  current: false },
+  { id: 3, name: 'Samsung Galaxy S24', type: 'mobile',  os: 'Android 14',     lastActive: '3 days ago', current: false },
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+const getIcon = t => ({ desktop: Monitor, laptop: Laptop, mobile: Smartphone }[t] || HardDrive);
 
-const getDeviceIcon = (type) => {
-  switch (type) {
-    case 'desktop': return Monitor;
-    case 'laptop':  return Laptop;
-    case 'mobile':  return Smartphone;
-    default:        return HardDrive;
-  }
-};
-
-// ─── GlassCard ───────────────────────────────────────────────────────────────
-
-const GlassCard = ({
-  children,
-  className = '',
-  borderColor = COLORS.white.border08,
-  hover = false,
-  style = {},
-}) => (
+// ── GlassPanel (identical to dashboard) ──────────────────────────────────────
+const GlassPanel = ({ children, className = '', onClick, hover = false, borderColor, glow, style = {} }) => (
   <div
+    onClick={onClick}
     className={`
-      relative overflow-hidden rounded-3xl
-      ${hover ? 'hover:scale-[1.01] transition-all duration-300' : ''}
+      relative rounded-3xl overflow-hidden
+      ${hover ? 'cursor-pointer transition-all duration-500 hover:scale-[1.01] hover:-translate-y-1' : ''}
+      ${onClick ? 'cursor-pointer' : ''}
       ${className}
     `}
     style={{
       background: '#000000',
-      border: `1px solid ${borderColor}`,
+      border: `1px solid ${borderColor || 'rgba(255,255,255,0.08)'}`,
       backdropFilter: 'blur(24px)',
-      WebkitBackdropFilter: 'blur(24px)',
+      boxShadow: glow ? `0 8px 32px ${glow}` : 'none',
       ...style,
     }}
   >
@@ -123,147 +44,76 @@ const GlassCard = ({
   </div>
 );
 
-// ─── Toast ───────────────────────────────────────────────────────────────────
+// ── Toast ─────────────────────────────────────────────────────────────────────
+const Toast = ({ message, type, visible }) => (
+  <div className={`fixed top-6 right-6 z-[9999] flex items-center gap-3 px-5 py-4 rounded-2xl transition-all duration-500
+    ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}
+    style={{
+      background: '#000000',
+      border: `1px solid ${type === 'success' ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
+      boxShadow: `0 8px 32px ${type === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'}`,
+    }}>
+    {type === 'success'
+      ? <CheckCircle size={17} color="#22C55E" />
+      : <AlertTriangle size={17} color="#EF4444" />}
+    <span className="font-rajdhani text-white text-[12px] tracking-[0.12em] uppercase font-bold">
+      {message}
+    </span>
+  </div>
+);
 
-const Toast = ({ message, type = 'success', visible }) => {
-  const isSuccess = type === 'success';
-
-  return (
-    <div
-      className={`
-        fixed top-6 right-6 z-[9999]
-        flex items-center gap-3 px-5 py-4 rounded-2xl
-        transition-all duration-500
-        ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
-      `}
-      style={{
-        background: '#000000',
-        border: `1px solid ${isSuccess ? COLORS.green.border20 : COLORS.red.border20}`,
-        boxShadow: `0 8px 32px ${isSuccess ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'}`,
-      }}
-      role="alert"
-      aria-live="polite"
-    >
-      {isSuccess ? (
-        <CheckCircle size={18} color={COLORS.green.base} />
-      ) : (
-        <AlertTriangle size={18} color={COLORS.red.base} />
-      )}
-      <span className="font-rajdhani text-white text-[13px] tracking-[0.1em] uppercase">
-        {message}
-      </span>
-    </div>
-  );
-};
-
-// ─── Confirm Modal ────────────────────────────────────────────────────────────
-
+// ── Confirm Modal ─────────────────────────────────────────────────────────────
 const ConfirmModal = ({ isOpen, deviceName, onConfirm, onCancel, loading }) => {
   if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-title"
-    >
-      <div
-        className="w-full max-w-md rounded-3xl overflow-hidden"
-        style={{
-          background: '#000000',
-          border: `1px solid ${COLORS.red.border20}`,
-          boxShadow: '0 24px 80px rgba(0,0,0,0.8)',
-        }}
-      >
-        {/* Modal Header */}
-        <div
-          className="p-6 flex items-center justify-between"
-          style={{ borderBottom: `1px solid ${COLORS.white.border08}` }}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: COLORS.red.bg10 }}
-            >
-              <Trash2 size={18} color={COLORS.red.base} />
-            </div>
-            <h2
-              id="confirm-title"
-              className="font-orbitron text-white text-[14px] tracking-[0.15em]"
-            >
-              REMOVE DEVICE
-            </h2>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
+      <div className="w-full max-w-md rounded-3xl overflow-hidden"
+        style={{ background: '#000000', border: '1px solid rgba(239,68,68,0.22)', boxShadow: '0 24px 80px rgba(0,0,0,0.8)' }}>
 
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            aria-label="Close dialog"
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200"
-            style={{
-              background: COLORS.white.bg04,
-              border: `1px solid ${COLORS.white.border08}`,
-            }}
-          >
-            <X size={16} color="#71717A" />
+        <div className="p-6 flex items-center justify-between"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
+              style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.18)' }}>
+              <Trash2 size={18} color="#EF4444" />
+            </div>
+            <div>
+              <h2 className="font-orbitron text-white text-[14px] font-bold tracking-[0.15em]">REMOVE DEVICE</h2>
+              <p className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.15em] uppercase">This cannot be undone</p>
+            </div>
+          </div>
+          <button onClick={onCancel} disabled={loading}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <X size={15} color="#71717A" />
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-6">
-          <p className="font-rajdhani text-zinc-300 text-[14px] tracking-[0.08em] leading-relaxed mb-2">
-            You are about to remove:
-          </p>
-          <p className="font-orbitron text-[#C5A059] text-[15px] font-bold mb-5">
-            {deviceName}
-          </p>
-          <p className="font-rajdhani text-zinc-400 text-[13px] tracking-[0.08em] leading-relaxed">
-            This will immediately revoke access and sign the device out of the
-            system. This action cannot be undone.
+          <div className="px-5 py-4 rounded-2xl mb-4"
+            style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.12)' }}>
+            <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase mb-1">Removing Device</p>
+            <p className="font-orbitron text-red-400 text-[16px] font-bold">{deviceName}</p>
+          </div>
+          <p className="font-rajdhani text-zinc-400 text-[13px] tracking-wide leading-relaxed">
+            This will immediately revoke access and sign the device out.
+            <span className="text-red-400 font-bold"> Cannot be undone.</span>
           </p>
         </div>
 
-        {/* Modal Footer */}
-        <div
-          className="p-6 flex items-center gap-3"
-          style={{ borderTop: `1px solid ${COLORS.white.border08}` }}
-        >
-          {/* Cancel */}
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            className="flex-1 py-3 rounded-xl font-rajdhani text-zinc-300 text-[12px] tracking-[0.15em] uppercase font-bold transition-all duration-200 hover:scale-[1.02]"
-            style={{
-              background: COLORS.white.bg04,
-              border: `1px solid ${COLORS.white.border08}`,
-            }}
-          >
+        <div className="p-6 flex gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <button onClick={onCancel} disabled={loading}
+            className="flex-1 py-3 rounded-2xl font-rajdhani text-zinc-300 text-[12px] tracking-[0.15em] uppercase font-bold transition-all duration-300 hover:scale-[1.01] hover:text-white"
+            style={{ background: '#000000', border: '1px solid rgba(255,255,255,0.10)' }}>
             Cancel
           </button>
-
-          {/* Confirm */}
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className="flex-1 py-3 rounded-xl font-rajdhani text-red-400 text-[12px] tracking-[0.15em] uppercase font-bold flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-            style={{
-              background: COLORS.red.bg08,
-              border: `1px solid ${COLORS.red.border20}`,
-            }}
-          >
-            {loading ? (
-              <>
-                <Loader2 size={14} color="#EF4444" className="animate-spin" />
-                <span>Removing...</span>
-              </>
-            ) : (
-              <>
-                <Trash2 size={14} color="#EF4444" />
-                <span>Remove Device</span>
-              </>
-            )}
+          <button onClick={onConfirm} disabled={loading}
+            className="flex-1 py-3 rounded-2xl font-rajdhani text-red-400 text-[12px] tracking-[0.15em] uppercase font-bold flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.20)' }}>
+            {loading
+              ? <><Loader2 size={14} color="#EF4444" className="animate-spin" /> Removing...</>
+              : <><Trash2 size={14} color="#EF4444" /> Remove Device</>}
           </button>
         </div>
       </div>
@@ -271,231 +121,132 @@ const ConfirmModal = ({ isOpen, deviceName, onConfirm, onCancel, loading }) => {
   );
 };
 
-// ─── Empty State ──────────────────────────────────────────────────────────────
-
-const EmptyState = () => (
-  <GlassCard borderColor={COLORS.white.border08}>
-    <div className="p-12 flex flex-col items-center justify-center text-center">
-      <div
-        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-        style={{ background: COLORS.white.bg04 }}
-      >
-        <WifiOff size={28} color="#52525B" />
-      </div>
-      <h3 className="font-orbitron text-zinc-500 text-[13px] tracking-[0.18em] mb-2">
-        NO ADDITIONAL DEVICES
-      </h3>
-      <p className="font-rajdhani text-zinc-600 text-[12px] tracking-[0.1em] uppercase">
-        Only your current device is registered
-      </p>
-    </div>
-  </GlassCard>
-);
-
-// ─── Error State ──────────────────────────────────────────────────────────────
-
-const ErrorBanner = ({ message, onRetry }) => (
-  <GlassCard borderColor={COLORS.red.border20}>
-    <div className="p-5 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <AlertTriangle size={18} color={COLORS.red.base} />
-        <span className="font-rajdhani text-red-400 text-[13px] tracking-[0.1em] uppercase">
-          {message}
-        </span>
-      </div>
-      <button
-        onClick={onRetry}
-        className="font-rajdhani text-[#C5A059] text-[12px] tracking-[0.12em] uppercase font-bold underline underline-offset-4 hover:opacity-70 transition-opacity"
-      >
-        Retry
-      </button>
-    </div>
-  </GlassCard>
-);
-
-// ─── DeviceCard ───────────────────────────────────────────────────────────────
-
-const DeviceCard = ({ device, onRemoveClick, removing }) => {
-  const Icon = getDeviceIcon(device.type);
+// ── DeviceCard ────────────────────────────────────────────────────────────────
+const DeviceCard = ({ device, onRemove, removing }) => {
+  const Icon      = getIcon(device.type);
   const isRemoving = removing === device.id;
+  const typeLabel  = { desktop: 'Desktop', laptop: 'Laptop', mobile: 'Mobile' }[device.type] || 'Device';
 
   return (
-    <GlassCard
+    <GlassPanel
       hover={!isRemoving}
-      className={`group transition-opacity duration-300 ${isRemoving ? 'opacity-50' : 'opacity-100'}`}
-      borderColor={device.current ? COLORS.gold.border25 : COLORS.white.border08}
+      className={`group transition-opacity duration-300 ${isRemoving ? 'opacity-40' : ''}`}
+      borderColor={device.current ? 'rgba(197,160,89,0.25)' : 'rgba(255,255,255,0.08)'}
+      glow={device.current ? 'rgba(197,160,89,0.05)' : undefined}
     >
-      <div className="p-5">
+      {/* Gold top accent for current */}
+      {device.current && (
+        <div className="absolute top-0 left-10 right-10 h-[2px]"
+          style={{ background: 'linear-gradient(90deg,transparent,rgba(197,160,89,0.4),transparent)' }} />
+      )}
+
+      <div className="p-6">
         <div className="flex items-start justify-between gap-4">
 
-          {/* Left — Icon + Info */}
+          {/* Left */}
           <div className="flex items-center gap-4">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{
-                background: device.current ? COLORS.gold.bg12 : COLORS.white.bg04,
-              }}
-            >
-              {isRemoving ? (
-                <Loader2 size={24} color="#EF4444" className="animate-spin" />
-              ) : (
-                <Icon
-                  size={24}
-                  color={device.current ? COLORS.gold.base : '#ffffff'}
-                  aria-hidden="true"
-                />
+            <div className="relative">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: device.current ? 'rgba(197,160,89,0.10)' : 'rgba(255,255,255,0.04)',
+                  border: device.current ? '1px solid rgba(197,160,89,0.20)' : '1px solid rgba(255,255,255,0.08)',
+                }}>
+                {isRemoving
+                  ? <Loader2 size={24} color="#EF4444" className="animate-spin" />
+                  : <Icon size={24} color={device.current ? GOLD : '#a1a1aa'} />}
+              </div>
+              {device.current && (
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                  style={{ background: '#000', border: '2px solid rgba(34,197,94,0.40)' }}>
+                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                </div>
               )}
             </div>
 
             <div>
-              <h3 className="font-orbitron text-white text-[15px] font-bold tracking-wide">
-                {device.name}
-              </h3>
-
-              <p className="font-rajdhani text-zinc-400 text-[12px] uppercase tracking-[0.15em] mt-1">
-                {device.os}
-              </p>
-
-              <div className="flex items-center gap-2 mt-2">
-                <Activity
-                  size={12}
-                  color={COLORS.green.base}
-                  aria-hidden="true"
-                />
-                <span className="font-rajdhani text-zinc-300 text-[11px] tracking-[0.1em] uppercase">
-                  Last Active: {device.lastActive}
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-orbitron text-white font-bold text-[15px] tracking-wide">{device.name}</h3>
+                <span className="px-2 py-0.5 rounded-lg font-rajdhani text-[9px] font-bold tracking-widest uppercase"
+                  style={{ background: 'rgba(255,255,255,0.04)', color: '#52525B', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  {typeLabel}
+                </span>
+              </div>
+              <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase mb-2">{device.os}</p>
+              <div className="flex items-center gap-2">
+                <Activity size={11} color="#22C55E" />
+                <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.08em] uppercase">
+                  {device.lastActive}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Right — Badge or Remove Button */}
+          {/* Right */}
           {device.current ? (
-            <div
-              className="px-3 py-2 rounded-xl flex items-center gap-2 flex-shrink-0"
-              style={{
-                background: COLORS.green.bg10,
-                border: `1px solid ${COLORS.green.border20}`,
-              }}
-              aria-label="This is your current device"
-            >
-              <CheckCircle size={14} color={COLORS.green.base} aria-hidden="true" />
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-shrink-0"
+              style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.18)' }}>
+              <CheckCircle size={13} color="#22C55E" />
               <span className="font-rajdhani text-green-400 text-[10px] font-bold tracking-[0.15em] uppercase">
-                Current Device
+                This Device
               </span>
             </div>
           ) : (
-            <button
-              onClick={() => onRemoveClick(device)}
-              disabled={isRemoving}
-              aria-label={`Remove device ${device.name}`}
-              className="px-4 py-2 rounded-xl flex items-center gap-2 flex-shrink-0 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              style={{
-                background: COLORS.red.bg08,
-                border: `1px solid ${COLORS.red.border20}`,
-              }}
-            >
-              {isRemoving ? (
-                <Loader2 size={14} color="#EF4444" className="animate-spin" />
-              ) : (
-                <Trash2 size={14} color="#EF4444" aria-hidden="true" />
-              )}
+            <button onClick={() => onRemove(device)} disabled={isRemoving}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl flex-shrink-0 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)' }}>
+              {isRemoving
+                ? <Loader2 size={13} color="#EF4444" className="animate-spin" />
+                : <Trash2 size={13} color="#EF4444" />}
               <span className="font-rajdhani text-red-400 text-[11px] font-bold tracking-[0.12em] uppercase">
-                {isRemoving ? 'Removing...' : 'Remove Device'}
+                {isRemoving ? 'Removing…' : 'Remove'}
               </span>
             </button>
           )}
-
         </div>
       </div>
-    </GlassCard>
+    </GlassPanel>
   );
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
+// ── Main ──────────────────────────────────────────────────────────────────────
 const AdminDeviceManagement = ({ onLogout }) => {
-
-  const [devices, setDevices]           = useState(INITIAL_DEVICES);
-  const [confirmDevice, setConfirmDevice] = useState(null);   // device object to confirm
-  const [removingId, setRemovingId]     = useState(null);     // id being removed
-  const [error, setError]               = useState(null);
-  const [toast, setToast]               = useState({ visible: false, message: '', type: 'success' });
-
-  // ── Toast Helper ────────────────────────────────────────────────────────────
+  const [devices,       setDevices]       = useState(INIT_DEVICES);
+  const [confirmDevice, setConfirmDevice] = useState(null);
+  const [removingId,    setRemovingId]    = useState(null);
+  const [error,         setError]         = useState(null);
+  const [toast,         setToast]         = useState({ visible: false, message: '', type: 'success' });
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ visible: true, message, type });
-    setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3500);
+    setTimeout(() => setToast(t => ({ ...t, visible: false })), 3500);
   }, []);
 
-  // ── Remove Flow ─────────────────────────────────────────────────────────────
-
-  const handleRemoveClick = useCallback((device) => {
-    setConfirmDevice(device);
-    setError(null);
-  }, []);
+  const handleRemoveClick  = useCallback(d => { setConfirmDevice(d); setError(null); }, []);
+  const handleCancelRemove = useCallback(() => { if (!removingId) setConfirmDevice(null); }, [removingId]);
 
   const handleConfirmRemove = useCallback(async () => {
     if (!confirmDevice) return;
-
-    const id = confirmDevice.id;
-    const name = confirmDevice.name;
-
+    const { id, name } = confirmDevice;
     setRemovingId(id);
-    setError(null);
-
     try {
-      // ── Simulate API call ──────────────────────────────────────────────────
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // Simulate occasional failure — remove this in production
-          // Math.random() > 0.2 ? resolve() : reject(new Error('Server error'));
-          resolve();
-        }, 1200);
-      });
-
-      setDevices((prev) => prev.filter((d) => d.id !== id));
+      await new Promise(r => setTimeout(r, 1200));
+      setDevices(prev => prev.filter(d => d.id !== id));
       setConfirmDevice(null);
-      showToast(`${name} removed successfully`, 'success');
-
+      showToast(`${name} removed`);
     } catch {
-      setError('Failed to remove device. Please try again.');
+      setError('Failed to remove. Please try again.');
       setConfirmDevice(null);
       showToast('Failed to remove device', 'error');
-    } finally {
-      setRemovingId(null);
-    }
+    } finally { setRemovingId(null); }
   }, [confirmDevice, showToast]);
 
-  const handleCancelRemove = useCallback(() => {
-    if (removingId) return; // prevent cancel while loading
-    setConfirmDevice(null);
-  }, [removingId]);
-
-  const handleRetry = useCallback(() => {
-    setError(null);
-  }, []);
-
-  // ── Derived State ────────────────────────────────────────────────────────────
-
-  const usagePercent = (devices.length / SUBSCRIPTION.maxDevices) * 100;
-  const slotsAvailable = SUBSCRIPTION.maxDevices - devices.length;
-  const nonCurrentDevices = devices.filter((d) => !d.current);
-
-  // ── Render ───────────────────────────────────────────────────────────────────
+  const used     = devices.length;
+  const usagePct = (used / MAX_DEV) * 100;
+  const slotsLeft = MAX_DEV - used;
 
   return (
     <Layout title="DEVICE MANAGEMENT" onLogout={onLogout}>
-
-      {/* Toast */}
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        visible={toast.visible}
-      />
-
-      {/* Confirm Modal */}
+      <Toast message={toast.message} type={toast.type} visible={toast.visible} />
       <ConfirmModal
         isOpen={!!confirmDevice}
         deviceName={confirmDevice?.name ?? ''}
@@ -504,178 +255,280 @@ const AdminDeviceManagement = ({ onLogout }) => {
         onCancel={handleCancelRemove}
       />
 
-      <div
-        className="min-h-screen p-6 md:p-8 lg:p-10"
-        style={{
-          background: 'linear-gradient(180deg,#050505 0%,#0a0a0a 100%)',
-        }}
-      >
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="relative min-h-screen">
+        {/* Same bg as dashboard */}
+        <div className="fixed inset-0 z-0" style={{
+          background: 'radial-gradient(ellipse at 20% 0%,rgba(234,179,8,0.05) 0%,transparent 50%), radial-gradient(ellipse at 80% 100%,rgba(168,85,247,0.04) 0%,transparent 50%), linear-gradient(180deg,rgba(0,0,0,0.90) 0%,rgba(0,0,0,0.96) 40%,#000000 100%)',
+        }} />
 
-          {/* ── HEADER ──────────────────────────────────────────────────────── */}
+        <div className="relative z-10 p-8 lg:p-10 space-y-8 max-w-[1200px] mx-auto">
 
-          <GlassCard borderColor={COLORS.gold.border15}>
-            <div className="p-8">
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                  style={{ background: COLORS.gold.bg10 }}
-                >
-                  <Shield size={26} color={COLORS.gold.base} aria-hidden="true" />
-                </div>
-
-                <div>
-                  <h1 className="font-orbitron text-white text-[26px] font-bold tracking-[0.15em]">
-                    DEVICE MANAGEMENT
-                  </h1>
-                  <p className="font-rajdhani text-zinc-400 text-[12px] uppercase tracking-[0.15em] mt-1">
-                    Manage your registered devices
-                  </p>
-                </div>
+          {/* ── Header (matches dashboard header style) ── */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                style={{ background: 'rgba(197,160,89,0.10)', border: '1px solid rgba(197,160,89,0.18)' }}>
+                <Shield size={26} color={GOLD} />
               </div>
-            </div>
-          </GlassCard>
-
-          {/* ── ERROR BANNER ─────────────────────────────────────────────────── */}
-
-          {error && (
-            <ErrorBanner message={error} onRetry={handleRetry} />
-          )}
-
-          {/* ── SUBSCRIPTION CARD ────────────────────────────────────────────── */}
-
-          <GlassCard borderColor={COLORS.gold.border20}>
-            <div className="p-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-
-                {/* Plan Info */}
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <Crown size={22} color={COLORS.gold.base} aria-hidden="true" />
-                    <span className="font-orbitron text-[#C5A059] text-[13px] tracking-[0.18em] font-bold uppercase">
-                      Subscription
-                    </span>
-                  </div>
-
-                  <h2 className="font-orbitron text-white text-[34px] font-bold">
-                    {SUBSCRIPTION.plan}
-                  </h2>
-
-                  <div className="flex items-center gap-2 mt-4">
-                    <Calendar size={16} color="#A1A1AA" aria-hidden="true" />
-                    <span className="font-rajdhani text-zinc-300 tracking-[0.12em] uppercase text-[12px]">
-                      Active Until : {SUBSCRIPTION.expiresAt}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Usage Bar */}
-                <div className="min-w-[320px]">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-rajdhani text-zinc-400 text-[12px] uppercase tracking-[0.12em]">
-                      Devices Used
-                    </span>
-                    <span className="font-orbitron text-[#C5A059] text-[16px] font-bold">
-                      {devices.length} / {SUBSCRIPTION.maxDevices}
-                    </span>
-                  </div>
-
-                  <div
-                    className="h-3 rounded-full overflow-hidden"
-                    style={{ background: COLORS.white.bg05 }}
-                    role="progressbar"
-                    aria-valuenow={devices.length}
-                    aria-valuemin={0}
-                    aria-valuemax={SUBSCRIPTION.maxDevices}
-                    aria-label="Device slots used"
-                  >
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${usagePercent}%`,
-                        background: 'linear-gradient(90deg,#C5A059,#EAB308)',
-                      }}
-                    />
-                  </div>
-
-                  <p className="font-rajdhani text-zinc-500 text-[11px] uppercase tracking-[0.12em] mt-3">
-                    {slotsAvailable} Device Slot{slotsAvailable !== 1 ? 's' : ''} Available
-                  </p>
-                </div>
-
-              </div>
-            </div>
-          </GlassCard>
-
-          {/* ── REGISTERED DEVICES ───────────────────────────────────────────── */}
-
-          <div>
-
-            {/* Section Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-orbitron text-white text-[18px] tracking-[0.15em]">
-                REGISTERED DEVICES
-              </h2>
-
-              <div
-                className="px-4 py-2 rounded-xl"
-                style={{
-                  background: COLORS.gold.bg08,
-                  border: `1px solid ${COLORS.gold.border15}`,
-                }}
-                aria-label={`${devices.length} device${devices.length !== 1 ? 's' : ''} registered`}
-              >
-                <span className="font-orbitron text-[#C5A059] text-[12px] font-bold">
-                  {devices.length}
-                </span>
+              <div>
+                <p className="font-rajdhani text-[#C5A059] text-[12px] tracking-[0.3em] uppercase font-bold mb-1">
+                  Account Security
+                </p>
+                <h1 className="font-orbitron text-white font-extrabold text-[32px] tracking-[0.2em]
+                               bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+                  DEVICE MANAGEMENT
+                </h1>
               </div>
             </div>
 
-            {/* Device List */}
-            <div className="space-y-4">
-              {devices.map((device) => (
-                <DeviceCard
-                  key={device.id}
-                  device={device}
-                  onRemoveClick={handleRemoveClick}
-                  removing={removingId}
-                />
-              ))}
-
-              {/* Empty State — shown when only current device remains */}
-              {nonCurrentDevices.length === 0 && (
-                <EmptyState />
-              )}
+            <div className="flex items-center gap-3 px-5 py-3 rounded-2xl"
+              style={{ background: '#000000', border: '1px solid rgba(197,160,89,0.18)' }}>
+              <Lock size={15} color={GOLD} />
+              <span className="font-rajdhani text-[#C5A059] text-[12px] font-bold tracking-[0.15em] uppercase">
+                Premium Security
+              </span>
             </div>
-
           </div>
 
-          {/* ── SECURITY NOTICE ──────────────────────────────────────────────── */}
+          {/* ── Error ── */}
+          {error && (
+            <GlassPanel borderColor="rgba(239,68,68,0.18)">
+              <div className="p-5 flex items-center gap-5">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(239,68,68,0.10)' }}>
+                  <AlertTriangle size={18} color="#EF4444" />
+                </div>
+                <span className="font-rajdhani text-red-400 text-[12px] tracking-[0.12em] uppercase font-bold flex-1">
+                  {error}
+                </span>
+                <button onClick={() => setError(null)}
+                  className="font-rajdhani text-zinc-500 text-[11px] tracking-widest uppercase hover:text-zinc-300 transition-colors">
+                  Dismiss
+                </button>
+              </div>
+            </GlassPanel>
+          )}
 
-          <GlassCard borderColor={COLORS.red.bg15}>
-            <div className="p-6">
-              <div className="flex items-start gap-4">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: COLORS.red.bg10 }}
-                >
-                  <AlertTriangle size={22} color={COLORS.red.base} aria-hidden="true" />
+          {/* ── Subscription Card (matches revenue card style) ── */}
+          <GlassPanel borderColor="rgba(197,160,89,0.15)" glow="rgba(197,160,89,0.06)">
+            {/* Gold accent */}
+            <div className="absolute top-0 left-10 right-10 h-[2px]"
+              style={{ background: 'linear-gradient(90deg,transparent,rgba(197,160,89,0.4),transparent)' }} />
+
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
+                    style={{ background: 'rgba(197,160,89,0.10)', border: '1px solid rgba(197,160,89,0.15)' }}>
+                    <Crown size={20} color={GOLD} />
+                  </div>
+                  <div>
+                    <h3 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em] mb-1">
+                      SUBSCRIPTION
+                    </h3>
+                    <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase">
+                      Active premium plan
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/[0.08] border border-green-500/[0.15]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  <span className="font-orbitron text-green-400 text-[11px] font-bold">Active</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-6">
+                {/* Plan info */}
+                <div className="col-span-12 xl:col-span-5">
+                  <p className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.2em] uppercase mb-2">Current Plan</p>
+                  <p className="font-orbitron text-white font-extralight text-[52px] leading-none mb-4">
+                    {SUB.plan}
+                  </p>
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+                    style={{ background: '#000000', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Calendar size={15} color="#71717A" />
+                    <div>
+                      <p className="font-rajdhani text-zinc-500 text-[9px] tracking-[0.2em] uppercase">Expires</p>
+                      <p className="font-rajdhani text-white text-[12px] font-bold tracking-[0.12em] uppercase">
+                        {SUB.expiresAt}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h3 className="font-orbitron text-red-400 text-[13px] tracking-[0.15em] mb-2">
-                    SECURITY NOTICE
-                  </h3>
-                  <p className="font-rajdhani text-zinc-300 text-[13px] leading-relaxed tracking-[0.08em]">
-                    Removing a device will immediately revoke access and sign that
-                    device out from the system. This action helps protect your account
-                    and subscription license and{' '}
-                    <span className="text-red-400 font-bold">cannot be undone</span>.
+                {/* Usage */}
+                <div className="col-span-12 xl:col-span-7">
+                  <p className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.2em] uppercase mb-4">
+                    Device Usage
                   </p>
+
+                  {/* Slot visualizer */}
+                  <div className="grid grid-cols-3 gap-3 mb-5">
+                    {Array.from({ length: MAX_DEV }).map((_, i) => {
+                      const dev    = devices[i];
+                      const filled = !!dev;
+                      const DIcon  = dev ? getIcon(dev.type) : Plus;
+                      const tLabel = dev ? { desktop: 'Desktop', laptop: 'Laptop', mobile: 'Mobile' }[dev.type] : null;
+                      return (
+                        <div key={i} className="flex flex-col items-center gap-2 py-4 px-3 rounded-2xl transition-all duration-300"
+                          style={{
+                            background: filled ? 'rgba(197,160,89,0.06)' : '#000000',
+                            border: filled ? '1px solid rgba(197,160,89,0.20)' : '1px dashed rgba(255,255,255,0.08)',
+                          }}>
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                            style={{
+                              background: filled ? 'rgba(197,160,89,0.10)' : 'rgba(255,255,255,0.03)',
+                              border: filled ? '1px solid rgba(197,160,89,0.18)' : '1px solid rgba(255,255,255,0.06)',
+                            }}>
+                            <DIcon size={18} color={filled ? GOLD : '#3f3f46'} />
+                          </div>
+                          {tLabel ? (
+                            <>
+                              <span className="font-rajdhani text-[10px] tracking-widest uppercase font-bold" style={{ color: GOLD }}>
+                                {tLabel}
+                              </span>
+                              {dev.current && (
+                                <span className="font-rajdhani text-green-400 text-[8px] tracking-widest uppercase font-bold">
+                                  Active
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <span className="font-rajdhani text-zinc-700 text-[10px] tracking-widest uppercase">Empty</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Monitor size={12} className="text-zinc-500" />
+                        <span className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.12em] uppercase font-medium">
+                          Slots Used
+                        </span>
+                      </div>
+                      <span className="font-orbitron text-[#C5A059] text-[13px] font-bold">
+                        {used} / {MAX_DEV}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${usagePct}%`,
+                          background: usagePct >= 100
+                            ? 'linear-gradient(90deg,#EF4444,#F97316)'
+                            : `linear-gradient(90deg,${GOLD},${GOLD_L})`,
+                          boxShadow: `0 0 12px rgba(197,160,89,0.3)`,
+                        }} />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full" style={{ backgroundColor: slotsLeft === 0 ? '#EF4444' : '#22C55E' }} />
+                    <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase font-medium">
+                      {slotsLeft === 0 ? 'All device slots used' : `${slotsLeft} slot${slotsLeft !== 1 ? 's' : ''} available`}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </GlassCard>
+          </GlassPanel>
+
+          {/* ── Devices Section ── */}
+          <div>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-[#C5A059] to-[#C5A059]/20" />
+                <div>
+                  <h2 className="font-orbitron text-white font-bold text-[16px] tracking-[0.15em]">
+                    REGISTERED DEVICES
+                  </h2>
+                  <p className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.15em] uppercase">
+                    Manage active sessions
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-2 rounded-xl"
+                style={{ background: '#000000', border: '1px solid rgba(197,160,89,0.18)' }}>
+                <span className="font-orbitron text-[#C5A059] text-[14px] font-bold">{used}</span>
+                <span className="font-rajdhani text-zinc-600 text-[10px]">/ {MAX_DEV}</span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {devices.map(d => (
+                <DeviceCard key={d.id} device={d} onRemove={handleRemoveClick} removing={removingId} />
+              ))}
+
+              {/* Empty slots */}
+              {slotsLeft > 0 && (
+                <GlassPanel>
+                  <div className="p-5 flex items-center gap-5">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)' }}>
+                      <Plus size={20} color="#3f3f46" />
+                    </div>
+                    <div>
+                      <p className="font-orbitron text-zinc-600 text-[13px] font-bold tracking-[0.15em] mb-1">
+                        {slotsLeft} SLOT{slotsLeft !== 1 ? 'S' : ''} AVAILABLE
+                      </p>
+                      <p className="font-rajdhani text-zinc-700 text-[11px] tracking-[0.1em] uppercase">
+                        You can register {slotsLeft} more device{slotsLeft !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                </GlassPanel>
+              )}
+
+              {/* Full warning */}
+              {slotsLeft === 0 && (
+                <GlassPanel borderColor="rgba(239,68,68,0.15)">
+                  <div className="p-5 flex items-center gap-5">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.18)' }}>
+                      <AlertTriangle size={20} color="#EF4444" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-rajdhani text-white text-[13px] font-bold tracking-[0.12em] uppercase mb-1">
+                        Maximum Device Limit Reached
+                      </p>
+                      <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase font-medium">
+                        Remove a device to add a new one (limit: {MAX_DEV})
+                      </p>
+                    </div>
+                    <div className="px-3 py-2 rounded-xl" style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.20)' }}>
+                      <span className="font-orbitron text-red-400 text-[14px] font-bold">{MAX_DEV}</span>
+                    </div>
+                  </div>
+                </GlassPanel>
+              )}
+            </div>
+          </div>
+
+          {/* ── Security Notice (matches alerts card) ── */}
+          <GlassPanel borderColor="rgba(239,68,68,0.12)" className="hover:border-red-500/20 transition-all duration-300">
+            <div className="p-6 flex items-center gap-5">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.15)', boxShadow: '0 4px 16px rgba(239,68,68,0.08)' }}>
+                <AlertTriangle size={18} color="#EF4444" />
+              </div>
+              <div className="flex-1">
+                <p className="font-rajdhani text-white text-[13px] font-bold tracking-[0.12em] uppercase mb-1">
+                  Security Notice
+                </p>
+                <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase font-medium">
+                  Premium plan supports up to <span style={{ color: GOLD }} className="font-bold">{MAX_DEV} devices</span> · Removing revokes access immediately ·
+                  <span className="text-red-400 font-bold"> Cannot be undone</span>
+                </p>
+              </div>
+              <div className="px-3 py-2 rounded-xl bg-red-500/[0.10] border border-red-500/[0.20]">
+                <span className="font-orbitron text-red-400 text-[14px] font-bold">{MAX_DEV}</span>
+              </div>
+            </div>
+          </GlassPanel>
 
         </div>
       </div>

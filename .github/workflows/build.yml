@@ -58,7 +58,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      # ✅ CI fix for hdiutil detach problems
+      #  CI fix for hdiutil detach problems
       - name: 🧹 Unmount leftover DMGs
         run: |
           sudo hdiutil detach -all -quiet || true
@@ -77,7 +77,7 @@ jobs:
           retry_wait_seconds: 30
           command: npm ci
 
-      # ✅ Retry whole build command
+      #  Retry whole build command
       - name: 🏗️ Build Mac App (with retry)
         uses: nick-fields/retry@v3
         env:
@@ -88,7 +88,7 @@ jobs:
           retry_wait_seconds: 60
           command: npm run electron:build:mac:ci
 
-      - name: ✅ Verify Ad-hoc Signature
+      - name:  Verify Ad-hoc Signature
         run: |
           echo "🔍 Checking app signature..."
           find release/mac* -name "*.app" -maxdepth 2 -type d 2>/dev/null | while read app; do

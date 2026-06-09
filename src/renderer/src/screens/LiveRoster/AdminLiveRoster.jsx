@@ -355,7 +355,7 @@ const AdminLiveRoster = ({ onLogout }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
-  // ✅ Member card click handler
+  //  Member card click handler
   const handleMemberClick = (member) => {
     navigate('/member-view', { state: { member } });
   };
