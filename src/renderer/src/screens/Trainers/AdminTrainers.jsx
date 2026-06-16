@@ -67,7 +67,7 @@ const StatCard = ({ icon: Icon, label, value, color, sub, pulse }) => (
         </div>
         {pulse && <PulseDot color={color} size={6} />}
       </div>
-      <p className="font-orbitron text-white font-bold text-[32px] leading-none mb-1
+      <p className="font-orbitron text-white font-bold text-[20px] leading-none mb-1
                     transition-all duration-300 group-hover:text-[34px]">
         {value}
       </p>
@@ -296,7 +296,7 @@ const AdminTrainers = ({ onLogout }) => {
                   style={{ color: CYAN }}>
                   Roster Management
                 </p>
-                <h1 className="font-orbitron text-white font-extrabold text-[28px] tracking-[0.15em]
+                <h1 className="font-orbitron text-white font-extrabold text-[20px] tracking-[0.15em]
                                bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
                   TRAINERS
                 </h1>

@@ -152,7 +152,7 @@ const StatCard = ({ icon: Icon, label, value, change, sub, color, pulse }) => (
         )}
       </div>
       <div className="mb-3">
-        <p className="font-orbitron text-white font-bold text-[32px] leading-none mb-2
+        <p className="font-orbitron text-white font-bold text-[20px] leading-none mb-2
                       transition-all duration-300 group-hover:text-[34px]">
           {typeof value === 'number' ? <AnimatedNumber value={value} /> : value}
         </p>
@@ -694,7 +694,7 @@ const AdminDashboard = ({ onLogout }) => {
                   <span className="text-white/30">•</span>
                   <span className="text-white/60">Admin</span>
                 </p>
-                <h1 className="font-orbitron text-white font-extrabold text-[32px] tracking-[0.2em]
+                <h1 className="font-orbitron text-white font-extrabold text-[20px] tracking-[0.2em]
                                bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
                   COMMAND CENTER
                 </h1>

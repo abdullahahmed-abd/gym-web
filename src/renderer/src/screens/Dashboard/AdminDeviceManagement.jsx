@@ -274,7 +274,7 @@ const AdminDeviceManagement = ({ onLogout }) => {
                 <p className="font-rajdhani text-[#C5A059] text-[12px] tracking-[0.3em] uppercase font-bold mb-1">
                   Account Security
                 </p>
-                <h1 className="font-orbitron text-white font-extrabold text-[32px] tracking-[0.2em]
+                <h1 className="font-orbitron text-white font-extrabold text-[20px] tracking-[0.2em]
                                bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
                   DEVICE MANAGEMENT
                 </h1>

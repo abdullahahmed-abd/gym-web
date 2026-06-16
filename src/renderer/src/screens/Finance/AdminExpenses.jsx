@@ -135,7 +135,7 @@ const StatCard = ({ icon: Icon, label, value, color, sub, change, changeUp }) =>
           </div>
         )}
       </div>
-      <p className="font-orbitron text-white font-bold text-[32px] leading-none mb-2
+      <p className="font-orbitron text-white font-bold text-[20px] leading-none mb-2
                     transition-all duration-300 group-hover:text-[34px]" style={{ color }}>
         ₹<AnimatedNumber value={value} />
       </p>
@@ -513,7 +513,7 @@ const AdminExpenses = ({ onLogout }) => {
                   <span className="text-white/20">•</span>
                   <span className="text-white/40">{period === 'monthly' ? 'This Month' : 'This Year'}</span>
                 </p>
-                <h1 className="font-orbitron text-white font-extrabold text-[28px] tracking-[0.2em]
+                <h1 className="font-orbitron text-white font-extrabold text-[20px] tracking-[0.2em]
                                bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
                   FINANCE CENTER
                 </h1>

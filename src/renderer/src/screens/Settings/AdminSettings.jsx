@@ -328,7 +328,7 @@ const AdminSettings = ({ onLogout }) => {
                   <span className="text-white/20">•</span>
                   <span className="text-white/40">Configuration</span>
                 </p>
-                <h1 className="font-orbitron text-white font-extrabold text-[28px] tracking-[0.2em]
+                <h1 className="font-orbitron text-white font-extrabold text-[20px] tracking-[0.2em]
                                bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
                   SETTINGS
                 </h1>

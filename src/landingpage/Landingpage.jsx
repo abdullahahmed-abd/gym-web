@@ -286,7 +286,7 @@ const HeroSection = () => (
       <h1 className="font-orbitron text-[30px] md:text-[46px] lg:text-[58px] font-bold leading-[1.05] tracking-[0.04em] mb-3">
         <GradientText>YOUR RULES.</GradientText>
       </h1>
-      <h2 className="font-orbitron text-zinc-400 text-[18px] md:text-[26px] lg:text-[32px] font-bold tracking-[0.06em] mb-8">
+      <h2 className="font-orbitron text-zinc-400 text-[18px] md:text-[26px] lg:text-[20px] font-bold tracking-[0.06em] mb-8">
         TWO POWERFUL APPS.
       </h2>
 
@@ -1026,7 +1026,7 @@ const CTASection = () => (
       <div className="absolute top-0 right-0 w-48 h-48 rounded-full blur-[100px] opacity-[0.06]" style={{ background: BRAND.gold }} />
       <div className="relative">
         <Trophy size={40} color={BRAND.gold} className="mx-auto mb-5 opacity-25" />
-        <h2 className="font-orbitron text-white text-[20px] md:text-[28px] lg:text-[32px] font-bold tracking-[0.08em] mb-3">
+        <h2 className="font-orbitron text-white text-[20px] md:text-[28px] lg:text-[20px] font-bold tracking-[0.08em] mb-3">
           READY TO <GradientText>TRANSFORM</GradientText><br />YOUR GYM?
         </h2>
         <p className="font-rajdhani text-zinc-500 text-[14px] tracking-[0.04em] mb-8 max-w-md mx-auto">

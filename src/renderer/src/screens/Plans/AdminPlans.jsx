@@ -326,7 +326,7 @@ const AdminPlans = ({ onLogout }) => {
               </div>
               <div>
                 <p className="font-rajdhani text-[#C5A059] text-[12px] tracking-[0.3em] uppercase font-bold mb-1">Plan Manager</p>
-                <h1 className="font-orbitron text-white font-extrabold text-[28px] tracking-[0.15em]
+                <h1 className="font-orbitron text-white font-extrabold text-[20px] tracking-[0.15em]
                                bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
                   MEMBERSHIP PLANS
                 </h1>
