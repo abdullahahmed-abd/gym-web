@@ -1,4 +1,4 @@
-// src/screens/Dashboard/AdminDashboard.jsx — WITH MANUAL CHECK-IN
+// src/screens/Dashboard/AdminDashboard.jsx — WITH AMOUNT VISIBILITY TOGGLE
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -7,7 +7,7 @@ import {
   Users, DollarSign, Dumbbell, UserPlus, ArrowRight,
   Clock, AlertCircle, CheckCircle, TrendingUp, Package,
   Activity, Zap, ChevronRight, BarChart3, Bell,
-  Shield, Eye, CreditCard, CalendarCheck,
+  Shield, Eye, EyeOff, CreditCard, CalendarCheck,
   UserCheck, Timer, Wifi, ArrowUpRight, Sparkles,
   Crown, Star, Target, TrendingDown, Calendar,
   Search, X, LogIn, LogOut, Phone, Hash,
@@ -20,7 +20,6 @@ import splashBg from '../../../../../src/assets/splash-bg.jpg';
 const GYM_LOGO  = gymLogo;
 const SPLASH_BG = splashBg;
 
-/* ── Palette ── */
 const GOLD  = '#C5A059';
 const GREEN = '#22C55E';
 
@@ -36,7 +35,6 @@ const MEMBERS = { total: 128, trial: 18, expired: 20, elite: 65, legendary: 43, 
 const LIVE    = { total: 15, avg: '38m', elite: 9, legendary: 6, trial: 3, expired: 4 };
 const REVENUE = { today: 45200, memberships: 32000, renewals: 8000, others: 5200, growth: 12 };
 
-/* ── Offline members pool ── */
 const OFFLINE_MEMBERS = [
   { id: 'o1', name: 'Vikram Singh',    avatar: 'VS', memberId: 'GYM005',
     membershipType: 'ELITE TIER',     membershipStatus: 'active',  phone: '+91 98765 43214',
@@ -73,9 +71,62 @@ const getTier   = t  => TIER_CFG[t] || TIER_CFG['ELITE TIER'];
 const getStatus = st => STATUS_CFG[st] || STATUS_CFG.active;
 
 /* ═══════════════════════════════════════════════════════════════ */
+/* AMOUNT TOGGLE BUTTON                                            */
+/* ═══════════════════════════════════════════════════════════════ */
+const AmountToggleBtn = ({ visible, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className="group relative flex items-center gap-2.5 h-10 px-4 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+    style={{
+      background: visible ? 'rgba(197,160,89,0.08)' : 'rgba(239,68,68,0.08)',
+      border: visible ? '1px solid rgba(197,160,89,0.22)' : '1px solid rgba(239,68,68,0.22)',
+      boxShadow: visible ? '0 4px 16px rgba(197,160,89,0.10)' : '0 4px 16px rgba(239,68,68,0.10)',
+    }}
+    title={visible ? 'Hide all amounts' : 'Show all amounts'}
+  >
+    <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+      <Eye
+        size={16}
+        style={{
+          color: GOLD,
+          position: 'absolute',
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'scale(1) rotate(0deg)' : 'scale(0.5) rotate(90deg)',
+          transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      />
+      <EyeOff
+        size={16}
+        style={{
+          color: '#EF4444',
+          position: 'absolute',
+          opacity: visible ? 0 : 1,
+          transform: visible ? 'scale(0.5) rotate(-90deg)' : 'scale(1) rotate(0deg)',
+          transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      />
+    </div>
+    <span
+      className="font-rajdhani text-[10px] font-bold tracking-[0.14em] uppercase transition-colors duration-300"
+      style={{ color: visible ? GOLD : '#EF4444' }}
+    >
+      {visible ? 'Hide' : 'Show'}
+    </span>
+
+    {/* Pulse ring when hidden */}
+    {!visible && (
+      <span
+        className="absolute inset-0 rounded-2xl animate-ping pointer-events-none"
+        style={{ background: 'rgba(239,68,68,0.06)', animationDuration: '2s' }}
+      />
+    )}
+  </button>
+);
+
+/* ═══════════════════════════════════════════════════════════════ */
 /* ANIMATED NUMBER                                                 */
 /* ═══════════════════════════════════════════════════════════════ */
-const AnimatedNumber = ({ value, duration = 1200 }) => {
+const AnimatedNumber = ({ value, duration = 1200, visible = true }) => {
   const [display, setDisplay] = useState(0);
   const num = typeof value === 'string' ? parseInt(value.replace(/[^0-9]/g, '')) : value;
   useEffect(() => {
@@ -87,6 +138,8 @@ const AnimatedNumber = ({ value, duration = 1200 }) => {
     };
     requestAnimationFrame(tick);
   }, [num, duration]);
+
+  if (!visible) return <span style={{ letterSpacing: '0.12em' }}>●●●●●●●</span>;
   return display;
 };
 
@@ -123,53 +176,64 @@ const GlassPanel = ({ children, className='', onClick, hover=false, gradient, bo
 );
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* STAT CARD                                                       */
+/* STAT CARD — accepts visible prop                                */
 /* ═══════════════════════════════════════════════════════════════ */
-const StatCard = ({ icon: Icon, label, value, change, sub, color, pulse }) => (
-  <GlassPanel hover className="group" glow={`${color}08`}>
-    <div className="p-6">
-      <div className="flex items-start justify-between mb-6">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center
-                        transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
-          style={{ background:`linear-gradient(135deg,${color}15,${color}08)`, border:`1px solid ${color}20`,
-                   boxShadow:`0 4px 16px ${color}10` }}>
-          <Icon size={20} style={{ color }} />
-        </div>
-        {pulse && <PulseDot color={color} size={7} />}
-        {change && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
-            style={{
-              background: change.startsWith('+')?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)',
-              border: change.startsWith('+')?'1px solid rgba(34,197,94,0.2)':'1px solid rgba(239,68,68,0.2)',
-            }}>
-            {change.startsWith('+')
-              ? <ArrowUpRight size={12} className="text-green-400" />
-              : <TrendingDown size={12} className="text-red-400" />}
-            <span className={`font-orbitron text-[10px] font-bold ${change.startsWith('+')?'text-green-400':'text-red-400'}`}>
-              {change}
-            </span>
+const StatCard = ({ icon: Icon, label, value, change, sub, color, pulse, visible = true }) => {
+  /* Determine if this card shows a money value */
+  const isMoney = typeof value === 'string' && value.startsWith('₹');
+  const maskedValue = isMoney ? '₹●●●●●' : value;
+
+  return (
+    <GlassPanel hover className="group" glow={`${color}08`}>
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-6">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center
+                          transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
+            style={{ background:`linear-gradient(135deg,${color}15,${color}08)`, border:`1px solid ${color}20`,
+                     boxShadow:`0 4px 16px ${color}10` }}>
+            <Icon size={20} style={{ color }} />
           </div>
+          {pulse && <PulseDot color={color} size={7} />}
+          {change && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
+              style={{
+                background: change.startsWith('+')?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)',
+                border: change.startsWith('+')?'1px solid rgba(34,197,94,0.2)':'1px solid rgba(239,68,68,0.2)',
+              }}>
+              {change.startsWith('+')
+                ? <ArrowUpRight size={12} className="text-green-400" />
+                : <TrendingDown size={12} className="text-red-400" />}
+              <span className={`font-orbitron text-[10px] font-bold ${change.startsWith('+')?'text-green-400':'text-red-400'}`}>
+                {change}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="mb-3">
+          <p className="font-orbitron text-white font-bold text-[20px] leading-none mb-2
+                        transition-all duration-300 group-hover:text-[34px]">
+            {isMoney
+              ? (visible ? value : '₹●●●●●')
+              : (typeof value === 'number'
+                  ? <AnimatedNumber value={value} visible={visible} />
+                  : value)
+            }
+          </p>
+          <p className="font-rajdhani text-zinc-300 text-[11px] tracking-[0.15em] uppercase font-semibold">{label}</p>
+        </div>
+        {sub && (
+          <>
+            <div className="h-px bg-gradient-to-r from-white/[0.05] via-white/[0.1] to-white/[0.05] mb-3" />
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-1 rounded-full" style={{ backgroundColor:`${color}80` }} />
+              <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase font-medium">{sub}</span>
+            </div>
+          </>
         )}
       </div>
-      <div className="mb-3">
-        <p className="font-orbitron text-white font-bold text-[20px] leading-none mb-2
-                      transition-all duration-300 group-hover:text-[34px]">
-          {typeof value === 'number' ? <AnimatedNumber value={value} /> : value}
-        </p>
-        <p className="font-rajdhani text-zinc-300 text-[11px] tracking-[0.15em] uppercase font-semibold">{label}</p>
-      </div>
-      {sub && (
-        <>
-          <div className="h-px bg-gradient-to-r from-white/[0.05] via-white/[0.1] to-white/[0.05] mb-3" />
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full" style={{ backgroundColor:`${color}80` }} />
-            <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.1em] uppercase font-medium">{sub}</span>
-          </div>
-        </>
-      )}
-    </div>
-  </GlassPanel>
-);
+    </GlassPanel>
+  );
+};
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* TIER BADGE                                                      */
@@ -226,9 +290,9 @@ const CommandButton = ({ icon: Icon, label, sublabel, color, onClick, badge }) =
 );
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* REVENUE ITEM                                                    */
+/* REVENUE ITEM — accepts visible prop                             */
 /* ═══════════════════════════════════════════════════════════════ */
-const RevenueItem = ({ label, amount, percentage, color, icon: Icon }) => (
+const RevenueItem = ({ label, amount, percentage, color, icon: Icon, visible = true }) => (
   <div className="group">
     <div className="flex items-center gap-3 mb-3">
       <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
@@ -237,7 +301,9 @@ const RevenueItem = ({ label, amount, percentage, color, icon: Icon }) => (
       </div>
       <div className="flex-1">
         <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase font-semibold mb-1">{label}</p>
-        <p className="font-orbitron text-white font-bold text-[16px]">₹{(amount/1000).toFixed(1)}K</p>
+        <p className="font-orbitron text-white font-bold text-[16px]">
+          {visible ? `₹${(amount/1000).toFixed(1)}K` : '₹●●●●●'}
+        </p>
       </div>
     </div>
     <div className="h-[3px] bg-white/[0.06] rounded-full overflow-hidden">
@@ -246,13 +312,15 @@ const RevenueItem = ({ label, amount, percentage, color, icon: Icon }) => (
     </div>
     <div className="flex items-center justify-between mt-2">
       <span className="font-rajdhani text-zinc-500 text-[10px] tracking-[0.1em] uppercase">of total revenue</span>
-      <span className="font-orbitron text-[11px] font-bold" style={{ color }}>{percentage}%</span>
+      <span className="font-orbitron text-[11px] font-bold" style={{ color }}>
+        {visible ? `${percentage}%` : '••%'}
+      </span>
     </div>
   </div>
 );
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* MEMBER PROFILE PANEL (slide-in inside modal)                    */
+/* MEMBER PROFILE PANEL                                            */
 /* ═══════════════════════════════════════════════════════════════ */
 const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing }) => {
   const isTrial   = member.membershipStatus === 'trial';
@@ -263,7 +331,6 @@ const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing 
 
   return (
     <div className="flex flex-col h-full">
-      {/* Back */}
       <div className="p-5 flex items-center gap-3 flex-shrink-0"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <button onClick={onBack}
@@ -277,15 +344,11 @@ const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing 
         </div>
       </div>
 
-      {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto p-5 space-y-4">
-
-        {/* Hero */}
         <div className="p-5 rounded-2xl relative overflow-hidden"
           style={{ background:`${accent}06`, border:`1px solid ${accent}18` }}>
           <div className="absolute top-0 left-6 right-6 h-[1.5px]"
             style={{ background:`linear-gradient(90deg,transparent,${accent}40,transparent)` }} />
-
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-orbitron font-bold text-[18px] flex-shrink-0"
               style={{ background:`${accent}15`, border:`2px solid ${accent}30`, color: accent }}>
@@ -313,7 +376,6 @@ const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing 
           </div>
         </div>
 
-        {/* Last activity */}
         <div className="p-4 rounded-2xl"
           style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.06)' }}>
           <p className="font-rajdhani text-zinc-500 text-[9px] tracking-[0.2em] uppercase font-semibold mb-3">Last Session</p>
@@ -329,7 +391,6 @@ const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing 
           </div>
         </div>
 
-        {/* Expired warning */}
         {member.membershipStatus === 'expired' && (
           <div className="p-4 rounded-2xl"
             style={{ background:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.18)' }}>
@@ -343,7 +404,6 @@ const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing 
           </div>
         )}
 
-        {/* Phone */}
         <div className="p-4 rounded-2xl flex items-center gap-3"
           style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.06)' }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -357,7 +417,6 @@ const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing 
         </div>
       </div>
 
-      {/* Footer action */}
       <div className="p-5 flex-shrink-0" style={{ borderTop:'1px solid rgba(255,255,255,0.07)' }}>
         {member.isLive ? (
           <button onClick={() => onCheckOut(member)} disabled={processing}
@@ -398,15 +457,14 @@ const MemberProfilePanel = ({ member, onCheckIn, onCheckOut, onBack, processing 
 };
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* MANUAL CHECK-IN MODAL (portal)                                  */
+/* MANUAL CHECK-IN MODAL                                           */
 /* ═══════════════════════════════════════════════════════════════ */
 const ManualCheckInModal = ({ onClose, members, setMembers }) => {
-  const [search,        setSearch]        = useState('');
-  const [selectedMember, setSelected]    = useState(null);
-  const [processing,    setProcessing]   = useState(false);
-  const [toast,         setToast]        = useState({ visible: false, msg: '', type: 'success' });
+  const [search,         setSearch]   = useState('');
+  const [selectedMember, setSelected] = useState(null);
+  const [processing,     setProc]     = useState(false);
+  const [toast,          setToast]    = useState({ visible: false, msg: '', type: 'success' });
 
-  /* Lock scroll */
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -423,21 +481,21 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
   });
 
   const handleCheckIn = async m => {
-    setProcessing(true);
+    setProc(true);
     await new Promise(r => setTimeout(r, 1100));
     const t = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
     setMembers(prev => prev.map(x => x.id===m.id ? { ...x, isLive:true, checkinTime:t } : x));
-    setProcessing(false);
+    setProc(false);
     showToast(`${m.name} checked in at ${t}`);
     setSelected(null);
   };
 
   const handleCheckOut = async m => {
-    setProcessing(true);
+    setProc(true);
     await new Promise(r => setTimeout(r, 1100));
     const t = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
     setMembers(prev => prev.map(x => x.id===m.id ? { ...x, isLive:false, checkinTime:null, lastCheckout:t } : x));
-    setProcessing(false);
+    setProc(false);
     showToast(`${m.name} checked out at ${t}`, 'warning');
     setSelected(null);
   };
@@ -458,28 +516,19 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
         <span className="font-rajdhani text-white text-[12px] tracking-[0.12em] uppercase font-bold">{toast.msg}</span>
       </div>
 
-      {/* Modal overlay */}
+      {/* Overlay */}
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
         style={{ background:'rgba(0,0,0,0.90)', backdropFilter:'blur(12px)' }}>
-
-        {/* Backdrop */}
         <div className="absolute inset-0" onClick={onClose} />
-
-        {/* Modal card */}
         <div className="relative w-full flex flex-col rounded-3xl overflow-hidden"
           style={{
-            maxWidth: '480px',
-            maxHeight: 'calc(100vh - 80px)',
-            background:'#000000',
-            border:'1px solid rgba(34,197,94,0.20)',
+            maxWidth: '480px', maxHeight: 'calc(100vh - 80px)',
+            background:'#000000', border:'1px solid rgba(34,197,94,0.20)',
             boxShadow:'0 32px 100px rgba(0,0,0,0.95), 0 0 60px rgba(34,197,94,0.06)',
           }}>
-
-          {/* Gold accent */}
           <div className="h-[2px] flex-shrink-0"
             style={{ background:'linear-gradient(90deg,transparent,rgba(34,197,94,0.50),transparent)' }} />
 
-          {/* ── If a member is selected → show profile ── */}
           {selectedMember ? (
             <MemberProfilePanel
               member={selectedMember}
@@ -490,7 +539,6 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
             />
           ) : (
             <>
-              {/* Header */}
               <div className="p-5 sm:p-6 flex items-center justify-between flex-shrink-0"
                 style={{ borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
                 <div className="flex items-center gap-4">
@@ -510,7 +558,6 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
                 </button>
               </div>
 
-              {/* Search */}
               <div className="px-5 pt-4 flex-shrink-0">
                 <div className="flex items-center gap-3 px-4 py-3 rounded-2xl"
                   style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.09)' }}>
@@ -529,7 +576,6 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
                 </div>
               </div>
 
-              {/* Count + filter info */}
               <div className="px-5 pt-3 pb-1 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <MapPin size={11} className="text-zinc-600" />
@@ -546,7 +592,6 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
                 </div>
               </div>
 
-              {/* Member list */}
               <div className="flex-1 overflow-y-auto px-5 pb-5 pt-2 space-y-2">
                 {filtered.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16">
@@ -570,14 +615,10 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
                           background: m.isLive?'rgba(34,197,94,0.05)':'rgba(255,255,255,0.02)',
                           border:`1px solid ${m.isLive?'rgba(34,197,94,0.15)':'rgba(255,255,255,0.06)'}`,
                         }}>
-
-                        {/* Avatar */}
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center font-orbitron font-bold text-[14px] flex-shrink-0"
                           style={{ background:`${accent}14`, border:`1.5px solid ${accent}28`, color: accent }}>
                           {m.avatar}
                         </div>
-
-                        {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-orbitron text-white font-bold text-[13px] tracking-[0.05em] truncate">{m.name}</span>
@@ -599,8 +640,6 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
                             <span className="font-mono text-zinc-600 text-[9px]">{m.memberId}</span>
                           </div>
                         </div>
-
-                        {/* Status indicator */}
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                           {m.isLive ? (
                             <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
@@ -636,9 +675,17 @@ const ManualCheckInModal = ({ onClose, members, setMembers }) => {
 /* ═══════════════════════════════════════════════════════════════ */
 const AdminDashboard = ({ onLogout }) => {
   const nav  = useNavigate();
-  const [time,          setTime]          = useState(new Date());
-  const [showCheckIn,   setShowCheckIn]   = useState(false);
-  const [checkInMembers, setCheckInMembers] = useState(OFFLINE_MEMBERS);
+  const [time,            setTime]          = useState(new Date());
+  const [showCheckIn,     setShowCheckIn]   = useState(false);
+  const [checkInMembers,  setCheckInMembers] = useState(OFFLINE_MEMBERS);
+
+  // ✅ Global amount visibility
+  const [amountsVisible, setAmountsVisible] = useState(true);
+
+  // Helper: mask or show a formatted rupee string
+  const M    = val  => amountsVisible ? `₹${Number(val).toLocaleString('en-IN')}` : '₹●●●●●●●';
+  const MK   = val  => amountsVisible ? `₹${(val/1000).toFixed(1)}K`             : '₹●●●●●';
+  const Mpct = pct  => amountsVisible ? `${pct}%`                                : '••%';
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -655,7 +702,6 @@ const AdminDashboard = ({ onLogout }) => {
   return (
     <Layout title="DASHBOARD" onLogout={onLogout}>
 
-      {/* Manual Check-In Modal */}
       {showCheckIn && (
         <ManualCheckInModal
           onClose={() => setShowCheckIn(false)}
@@ -664,7 +710,6 @@ const AdminDashboard = ({ onLogout }) => {
         />
       )}
 
-      {/* Background */}
       <div className="relative min-h-screen">
         <div className="fixed inset-0 z-0"
           style={{ backgroundImage:`url(${SPLASH_BG})`, backgroundSize:'cover', backgroundPosition:'center' }} />
@@ -678,9 +723,9 @@ const AdminDashboard = ({ onLogout }) => {
 
         <div className="relative z-10 p-8 lg:p-10 space-y-8 max-w-[1600px] mx-auto">
 
-          {/* HEADER */}
+          {/* ══════════════════════════════ HEADER */}
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4">
               {GYM_LOGO && (
                 <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/[0.1]
                                 flex items-center justify-center p-2 shadow-xl shadow-black/20"
@@ -688,6 +733,13 @@ const AdminDashboard = ({ onLogout }) => {
                   <img src={GYM_LOGO} alt="Logo" className="w-full h-full object-contain" />
                 </div>
               )}
+
+              {/* ✅ Eye toggle — right next to logo */}
+              <AmountToggleBtn
+                visible={amountsVisible}
+                onToggle={() => setAmountsVisible(v => !v)}
+              />
+
               <div>
                 <p className="font-rajdhani text-[#C5A059] text-[12px] tracking-[0.3em] uppercase font-bold mb-1 flex items-center gap-2">
                   <span>{greeting()}</span>
@@ -737,15 +789,15 @@ const AdminDashboard = ({ onLogout }) => {
             </div>
           </div>
 
-          {/* STAT CARDS */}
+          {/* ══════════════════════════════ STAT CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <StatCard icon={Users}      label="Total Members"  value={MEMBERS.total}  color="#C5A059" change="+8" />
-            <StatCard icon={Activity}   label="Live Now"       value={LIVE.total}     color="#22C55E" sub="currently checked in" pulse />
-            <StatCard icon={DollarSign} label="Today's Revenue" value={`₹${(REVENUE.today/1000).toFixed(1)}K`} color="#C5A059" change={`+${REVENUE.growth}%`} sub="vs yesterday" />
-            <StatCard icon={TrendingUp} label="Active Rate"    value="84%"            color="#A855F7" change="+3%" sub="this week" />
+            <StatCard icon={Users}      label="Total Members"   value={MEMBERS.total}                          color="#C5A059" change="+8"                  visible={amountsVisible} />
+            <StatCard icon={Activity}   label="Live Now"        value={LIVE.total}                             color="#22C55E" sub="currently checked in"   pulse visible={amountsVisible} />
+            <StatCard icon={DollarSign} label="Today's Revenue" value={`₹${(REVENUE.today/1000).toFixed(1)}K`} color="#C5A059" change={`+${REVENUE.growth}%`} sub="vs yesterday" visible={amountsVisible} />
+            <StatCard icon={TrendingUp} label="Active Rate"     value="84%"                                    color="#A855F7" change="+3%"                  sub="this week" visible={amountsVisible} />
           </div>
 
-          {/* MAIN GRID */}
+          {/* ══════════════════════════════ MAIN GRID */}
           <div className="grid grid-cols-12 gap-6">
 
             {/* LEFT */}
@@ -772,8 +824,9 @@ const AdminDashboard = ({ onLogout }) => {
 
                   <div className="mb-8">
                     <div className="flex items-end gap-4 mb-4">
+                      {/* Live count — not money, always show */}
                       <p className="font-orbitron text-white font-extralight text-[64px] leading-none">
-                        <AnimatedNumber value={LIVE.total} />
+                        <AnimatedNumber value={LIVE.total} visible={true} />
                       </p>
                       <div className="mb-3 flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/[0.08] border border-amber-500/[0.15]">
                         <Timer size={14} className="text-amber-400" />
@@ -829,18 +882,10 @@ const AdminDashboard = ({ onLogout }) => {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <CommandButton icon={UserPlus} label="Add Member" sublabel="Register new member" color="#C5A059" onClick={() => nav('/members')} />
-                    <CommandButton icon={Package}  label="Create Plan" sublabel="New membership plan" color="#A855F7" onClick={() => nav('/plans/add')} badge="NEW" />
+                    <CommandButton icon={UserPlus} label="Add Member"      sublabel="Register new member"              color="#C5A059" onClick={() => nav('/members')} />
+                    <CommandButton icon={Package}  label="Create Plan"     sublabel="New membership plan"              color="#A855F7" onClick={() => nav('/plans/add')} badge="NEW" />
                     <CommandButton icon={Dumbbell} label="Manage Trainers" sublabel={`${MEMBERS.trainer} active trainers`} color="#22D3EE" onClick={() => nav('/trainers')} />
-                    {/* ✅ Manual Check-In opens modal */}
-                    <CommandButton
-                      icon={UserCheck}
-                      label="Manual Check-In"
-                      sublabel="Walk-in verification"
-                      color="#22C55E"
-                      onClick={() => setShowCheckIn(true)}
-                      badge="LIVE"
-                    />
+                    <CommandButton icon={UserCheck} label="Manual Check-In" sublabel="Walk-in verification"            color="#22C55E" onClick={() => setShowCheckIn(true)} badge="LIVE" />
                   </div>
                 </div>
               </GlassPanel>
@@ -869,16 +914,17 @@ const AdminDashboard = ({ onLogout }) => {
                     </div>
                     <div>
                       <p className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.2em] uppercase text-right mb-1">Total Members</p>
+                      {/* Member count — not money, always visible */}
                       <p className="font-orbitron text-white font-extralight text-[36px] leading-none text-right">
-                        <AnimatedNumber value={MEMBERS.total} />
+                        <AnimatedNumber value={MEMBERS.total} visible={true} />
                       </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <TierBadge icon={Crown}     label="Elite Members" count={MEMBERS.elite}     color={TIER_COLORS.elite.primary}     total={MEMBERS.total} />
-                    <TierBadge icon={Sparkles}  label="Legendary"     count={MEMBERS.legendary} color={TIER_COLORS.legendary.primary} total={MEMBERS.total} />
-                    <TierBadge icon={Zap}       label="Trial Members" count={MEMBERS.trial}     color={TIER_COLORS.trial.primary}     total={MEMBERS.total} />
-                    <TierBadge icon={AlertCircle} label="Expired"     count={MEMBERS.expired}   color={TIER_COLORS.expired.primary}   total={MEMBERS.total} />
+                    <TierBadge icon={Crown}       label="Elite Members" count={MEMBERS.elite}     color={TIER_COLORS.elite.primary}     total={MEMBERS.total} />
+                    <TierBadge icon={Sparkles}    label="Legendary"     count={MEMBERS.legendary} color={TIER_COLORS.legendary.primary} total={MEMBERS.total} />
+                    <TierBadge icon={Zap}         label="Trial Members" count={MEMBERS.trial}     color={TIER_COLORS.trial.primary}     total={MEMBERS.total} />
+                    <TierBadge icon={AlertCircle} label="Expired"       count={MEMBERS.expired}   color={TIER_COLORS.expired.primary}   total={MEMBERS.total} />
                   </div>
                   <div className="flex items-center justify-between px-5 py-4 rounded-2xl"
                     style={{ background:'#000000', border:`1px solid ${TIER_COLORS.trainer.border}` }}>
@@ -902,7 +948,7 @@ const AdminDashboard = ({ onLogout }) => {
                 </div>
               </GlassPanel>
 
-              {/* Revenue */}
+              {/* Revenue Panel */}
               <GlassPanel hover onClick={() => nav('/expenses')} className="group"
                 borderColor="rgba(197,160,89,0.12)" glow="rgba(197,160,89,0.06)">
                 <div className="absolute top-0 left-10 right-10 h-[2px]"
@@ -924,10 +970,15 @@ const AdminDashboard = ({ onLogout }) => {
                       <span className="font-orbitron text-green-400 text-[11px] font-bold">+{REVENUE.growth}%</span>
                     </div>
                   </div>
+
                   <div className="mb-8">
                     <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.2em] uppercase mb-2 font-medium">Total Collection</p>
+                    {/* ✅ Big revenue number — masked when hidden */}
                     <span className="font-orbitron text-[#C5A059] font-extralight text-[52px] leading-none">
-                      ₹<AnimatedNumber value={REVENUE.today} />
+                      {amountsVisible
+                        ? <>₹<AnimatedNumber value={REVENUE.today} visible={true} /></>
+                        : <span style={{ letterSpacing: '0.08em' }}>₹●●●●●●●</span>
+                      }
                     </span>
                     <div className="mt-4">
                       <div className="flex items-center justify-between mb-2">
@@ -935,7 +986,9 @@ const AdminDashboard = ({ onLogout }) => {
                           <Target size={12} className="text-zinc-500" />
                           <span className="font-rajdhani text-zinc-400 text-[10px] tracking-[0.12em] uppercase font-medium">Daily Target Progress</span>
                         </div>
-                        <span className="font-orbitron text-zinc-300 text-[11px] font-bold">75%</span>
+                        <span className="font-orbitron text-zinc-300 text-[11px] font-bold">
+                          {Mpct(75)}
+                        </span>
                       </div>
                       <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-1000"
@@ -943,12 +996,15 @@ const AdminDashboard = ({ onLogout }) => {
                       </div>
                     </div>
                   </div>
+
                   <div className="h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent mb-6" />
+
                   <div className="grid grid-cols-3 gap-6">
-                    <RevenueItem label="Memberships" amount={REVENUE.memberships} percentage={71} color="#C5A059" icon={CreditCard} />
-                    <RevenueItem label="Renewals"    amount={REVENUE.renewals}    percentage={18} color="#A855F7" icon={CalendarCheck} />
-                    <RevenueItem label="Others"      amount={REVENUE.others}      percentage={11} color="#3B82F6" icon={Package} />
+                    <RevenueItem label="Memberships" amount={REVENUE.memberships} percentage={71} color="#C5A059" icon={CreditCard}    visible={amountsVisible} />
+                    <RevenueItem label="Renewals"    amount={REVENUE.renewals}    percentage={18} color="#A855F7" icon={CalendarCheck} visible={amountsVisible} />
+                    <RevenueItem label="Others"      amount={REVENUE.others}      percentage={11} color="#3B82F6" icon={Package}       visible={amountsVisible} />
                   </div>
+
                   <div className="h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent my-6" />
                   <div className="flex items-center justify-center gap-3 group-hover:gap-4 transition-all">
                     <BarChart3 size={14} className="text-[#C5A059]/50 group-hover:text-[#C5A059]/80 transition-colors" />
@@ -964,7 +1020,7 @@ const AdminDashboard = ({ onLogout }) => {
               <GlassPanel borderColor="rgba(239,68,68,0.12)" className="hover:border-red-500/20 transition-all duration-300">
                 <div className="p-6 flex items-center gap-5">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-                    style={{ background:'rgba(239,68,68,0.10)', border:'1px solid rgba(239,68,68,0.15)', boxShadow:'0 4px 16px rgba(239,68,68,0.08)' }}>
+                    style={{ background:'rgba(167, 155, 155, 0.1)', border:'1px solid rgba(239,68,68,0.15)', boxShadow:'0 4px 16px rgba(239,68,68,0.08)' }}>
                     <Bell size={18} className="text-red-400" />
                   </div>
                   <div className="flex-1">

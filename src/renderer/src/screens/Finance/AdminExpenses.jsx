@@ -1,4 +1,4 @@
-// AdminExpenses.jsx — FIXED MODAL Z-INDEX & POSITIONING
+// AdminExpenses.jsx — WITH AMOUNT VISIBILITY TOGGLE
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +8,7 @@ import {
   DollarSign, CreditCard, Wallet, BarChart3, ArrowUpRight, ArrowDownRight,
   Calendar, Search, Receipt, Target, Activity, Zap, Building2,
   Droplets, Wrench, Users, ClipboardList, Pencil, IndianRupee,
-  Eye, Loader2,
+  Eye, EyeOff, Loader2,
 } from 'lucide-react';
 
 import splashBg from '../../../../../src/assets/splash-bg.jpg';
@@ -59,11 +59,27 @@ const getCat     = id => CATEGORIES.find(c => c.id === id) || CATEGORIES[6];
 const formatDate = d => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
 /* ═══════════════════════════════════════════════════════════════ */
+/* MASKED AMOUNT — shows ₹******* when hidden                     */
+/* ═══════════════════════════════════════════════════════════════ */
+const MaskedAmount = ({ value, visible, className = '', style = {}, prefix = '₹' }) => {
+  if (!visible) {
+    return (
+      <span className={className} style={style}>
+        <span style={{ letterSpacing: '0.05em' }}>{prefix}</span>
+        <span style={{ letterSpacing: '0.12em', fontFamily: 'inherit' }}>{'●●●●●●●'}</span>
+      </span>
+    );
+  }
+  return <span className={className} style={style}>{prefix}{typeof value === 'string' ? value : Number(value).toLocaleString('en-IN')}</span>;
+};
+
+/* ═══════════════════════════════════════════════════════════════ */
 /* ANIMATED NUMBER                                                 */
 /* ═══════════════════════════════════════════════════════════════ */
-const AnimatedNumber = ({ value, duration = 1200 }) => {
+const AnimatedNumber = ({ value, duration = 1200, visible }) => {
   const [display, setDisplay] = useState(0);
   const num = typeof value === 'number' ? value : parseInt(String(value).replace(/[^0-9]/g, '')) || 0;
+
   useEffect(() => {
     const t0 = performance.now();
     const tick = t => {
@@ -73,7 +89,11 @@ const AnimatedNumber = ({ value, duration = 1200 }) => {
     };
     requestAnimationFrame(tick);
   }, [num, duration]);
-  return display.toLocaleString('en-IN');
+
+  if (!visible) {
+    return <span style={{ letterSpacing: '0.12em' }}>●●●●●●●</span>;
+  }
+  return <>{display.toLocaleString('en-IN')}</>;
 };
 
 /* ═══════════════════════════════════════════════════════════════ */
@@ -111,7 +131,7 @@ const PulseDot = ({ color = GREEN, size = 8 }) => (
 /* ═══════════════════════════════════════════════════════════════ */
 /* STAT CARD                                                       */
 /* ═══════════════════════════════════════════════════════════════ */
-const StatCard = ({ icon: Icon, label, value, color, sub, change, changeUp }) => (
+const StatCard = ({ icon: Icon, label, value, color, sub, change, changeUp, visible }) => (
   <GlassPanel hover className="group" glow={`${color}08`}>
     <div className="p-6">
       <div className="flex items-start justify-between mb-5">
@@ -135,10 +155,13 @@ const StatCard = ({ icon: Icon, label, value, color, sub, change, changeUp }) =>
           </div>
         )}
       </div>
+
+      {/* Amount row */}
       <p className="font-orbitron text-white font-bold text-[20px] leading-none mb-2
                     transition-all duration-300 group-hover:text-[34px]" style={{ color }}>
-        ₹<AnimatedNumber value={value} />
+        ₹<AnimatedNumber value={value} visible={visible} />
       </p>
+
       <p className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.15em] uppercase font-semibold">{label}</p>
       {sub && (
         <>
@@ -154,7 +177,7 @@ const StatCard = ({ icon: Icon, label, value, color, sub, change, changeUp }) =>
 );
 
 /* ═══════════════════════════════════════════════════════════════ */
-/* ADD EXPENSE MODAL — ✅ PORTALED TO document.body               */
+/* ADD EXPENSE MODAL                                               */
 /* ═══════════════════════════════════════════════════════════════ */
 const AddExpenseModal = ({ onClose, onAdd }) => {
   const [catId, setCatId]             = useState('electricity');
@@ -166,7 +189,6 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
   const cat     = getCat(catId);
   const CatIcon = cat.icon;
 
-  // ✅ Prevent body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -189,38 +211,31 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
     onClose();
   };
 
-  // ✅ Use createPortal to render modal at document.body level
-  // This ensures it's ABOVE the Layout header, sidebar, and any other z-indexed elements
   const modalContent = (
     <div
       className="fixed inset-0 flex items-center justify-center p-4 sm:p-6"
       style={{
-        zIndex: 99999,                    // ✅ Above everything
+        zIndex: 99999,
         background: 'rgba(0,0,0,0.90)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
       }}
     >
-      {/* ✅ Backdrop click to close */}
       <div className="absolute inset-0" onClick={onClose} />
-
-      {/* ✅ Modal card — centered with safe margins */}
       <div
         className="relative w-full max-w-md rounded-3xl overflow-hidden flex flex-col"
         style={{
           background: '#000000',
           border: '1px solid rgba(197,160,89,0.22)',
           boxShadow: '0 32px 100px rgba(0,0,0,0.95), 0 0 80px rgba(197,160,89,0.08)',
-          maxHeight: 'calc(100vh - 80px)',  // ✅ Safe from top & bottom
-          marginTop: '20px',                // ✅ Extra top safety
+          maxHeight: 'calc(100vh - 80px)',
+          marginTop: '20px',
           marginBottom: '20px',
         }}
       >
-        {/* Gold accent line */}
         <div className="h-[2px] flex-shrink-0"
           style={{ background: `linear-gradient(90deg, transparent, ${GOLD}60, transparent)` }} />
 
-        {/* ═══ HEADER ═══ */}
         <div className="p-5 sm:p-6 flex items-center justify-between flex-shrink-0"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-3 sm:gap-4">
@@ -245,7 +260,6 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
           </button>
         </div>
 
-        {/* ═══ BODY — scrollable ═══ */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5"
           style={{ overscrollBehavior: 'contain' }}>
 
@@ -283,7 +297,6 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
             </div>
           </div>
 
-          {/* Custom label */}
           {catId === 'custom' && (
             <div>
               <label className="block font-rajdhani text-zinc-500 text-[10px] tracking-[0.2em] uppercase font-semibold mb-2">
@@ -322,8 +335,6 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
                 </span>
               )}
             </div>
-
-            {/* Quick amounts */}
             <div className="flex items-center gap-1.5 sm:gap-2 mt-2.5 flex-wrap">
               {[500, 1000, 5000, 10000, 25000].map(q => (
                 <button key={q} onClick={() => setAmount(String(q))}
@@ -359,7 +370,6 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
           </div>
         </div>
 
-        {/* ═══ FOOTER — fixed at bottom ═══ */}
         <div className="p-5 sm:p-6 flex gap-3 flex-shrink-0"
           style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <button onClick={onClose}
@@ -390,14 +400,13 @@ const AddExpenseModal = ({ onClose, onAdd }) => {
     </div>
   );
 
-  // ✅ Portal to document.body — above ALL layout elements
   return createPortal(modalContent, document.body);
 };
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* EXPENSE ROW                                                     */
 /* ═══════════════════════════════════════════════════════════════ */
-const ExpenseRow = ({ expense, onDelete }) => {
+const ExpenseRow = ({ expense, onDelete, visible }) => {
   const cat     = getCat(expense.categoryId);
   const CatIcon = cat.icon;
 
@@ -434,9 +443,16 @@ const ExpenseRow = ({ expense, onDelete }) => {
         </div>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
-        <span className="font-orbitron font-bold text-[15px]" style={{ color: GOLD }}>
-          {fmt(expense.amount)}
-        </span>
+        {/* Masked amount in row */}
+        {visible ? (
+          <span className="font-orbitron font-bold text-[15px]" style={{ color: GOLD }}>
+            {fmt(expense.amount)}
+          </span>
+        ) : (
+          <span className="font-orbitron font-bold text-[15px] tracking-widest" style={{ color: GOLD }}>
+            ₹●●●●●●●
+          </span>
+        )}
         <button onClick={() => onDelete(expense.id)}
           className="w-9 h-9 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100
                      transition-all duration-300 hover:scale-110 active:scale-95"
@@ -449,6 +465,60 @@ const ExpenseRow = ({ expense, onDelete }) => {
 };
 
 /* ═══════════════════════════════════════════════════════════════ */
+/* AMOUNT TOGGLE BUTTON                                           */
+/* ═══════════════════════════════════════════════════════════════ */
+const AmountToggleBtn = ({ visible, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className="group relative flex items-center gap-2.5 h-10 px-4 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+    style={{
+      background: visible ? 'rgba(197,160,89,0.08)' : 'rgba(239,68,68,0.08)',
+      border: visible ? '1px solid rgba(197,160,89,0.22)' : '1px solid rgba(239,68,68,0.22)',
+      boxShadow: visible ? '0 4px 16px rgba(197,160,89,0.10)' : '0 4px 16px rgba(239,68,68,0.10)',
+    }}
+    title={visible ? 'Hide all amounts' : 'Show all amounts'}
+  >
+    {/* Animated icon swap */}
+    <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+      <Eye
+        size={16}
+        style={{
+          color: GOLD,
+          position: 'absolute',
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'scale(1) rotate(0deg)' : 'scale(0.5) rotate(90deg)',
+          transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      />
+      <EyeOff
+        size={16}
+        style={{
+          color: RED,
+          position: 'absolute',
+          opacity: visible ? 0 : 1,
+          transform: visible ? 'scale(0.5) rotate(-90deg)' : 'scale(1) rotate(0deg)',
+          transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        }}
+      />
+    </div>
+    <span
+      className="font-rajdhani text-[10px] font-bold tracking-[0.14em] uppercase transition-colors duration-300"
+      style={{ color: visible ? GOLD : RED }}
+    >
+      {visible ? 'Hide' : 'Show'}
+    </span>
+
+    {/* Subtle pulse ring when hidden */}
+    {!visible && (
+      <span
+        className="absolute inset-0 rounded-2xl animate-ping pointer-events-none"
+        style={{ background: 'rgba(239,68,68,0.06)', animationDuration: '2s' }}
+      />
+    )}
+  </button>
+);
+
+/* ═══════════════════════════════════════════════════════════════ */
 /* MAIN                                                            */
 /* ═══════════════════════════════════════════════════════════════ */
 const AdminExpenses = ({ onLogout }) => {
@@ -458,6 +528,9 @@ const AdminExpenses = ({ onLogout }) => {
   const [period,       setPeriod]       = useState('monthly');
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery,  setSearchQuery]  = useState('');
+
+  // ✅ Global amount visibility state
+  const [amountsVisible, setAmountsVisible] = useState(true);
 
   const revenue  = REVENUE_DATA[period];
   const cash     = CASH_DATA[period];
@@ -483,6 +556,10 @@ const AdminExpenses = ({ onLogout }) => {
     if (window.confirm('Delete this expense?')) setExpenses(p => p.filter(e => e.id !== id));
   };
 
+  /* helper — mask or show a formatted rupee string */
+  const M = (val) => amountsVisible ? fmt(val) : '₹●●●●●●●';
+  const Mpct = (pct) => amountsVisible ? `${pct}%` : '••%';
+
   return (
     <Layout title="FINANCE" onLogout={onLogout}>
       <div className="relative min-h-screen">
@@ -498,14 +575,23 @@ const AdminExpenses = ({ onLogout }) => {
 
         <div className="relative z-10 p-8 lg:p-10 space-y-8 max-w-[1600px] mx-auto">
 
-          {/* HEADER */}
+          {/* ══════════════════════════════════════════ HEADER */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4">
+
+              {/* Back button */}
               <button onClick={() => navigate(-1)}
                 className="group w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 hover:scale-105"
                 style={{ background: '#000', border: WHITE8 }}>
                 <ArrowLeft size={18} className="text-zinc-400 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
               </button>
+
+              {/* ✅ Eye toggle — right next to back button, top-left area */}
+              <AmountToggleBtn
+                visible={amountsVisible}
+                onToggle={() => setAmountsVisible(v => !v)}
+              />
+
               <div>
                 <p className="font-rajdhani text-[12px] tracking-[0.3em] uppercase font-bold mb-1 flex items-center gap-2"
                   style={{ color: GOLD }}>
@@ -549,18 +635,18 @@ const AdminExpenses = ({ onLogout }) => {
             </div>
           </div>
 
-          {/* STAT CARDS */}
+          {/* ══════════════════════════════════════════ STAT CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <StatCard icon={TrendingUp}   label="Total Revenue"  value={revenue.total}  color={GREEN} change="+12%" changeUp sub="memberships + others" />
-            <StatCard icon={TrendingDown}  label="Total Expenses" value={totalExp}       color={RED}   change="-5%"  changeUp={false} sub={`${expenses.length} transactions`} />
-            <StatCard icon={DollarSign}    label="Net Profit"     value={Math.abs(net)}  color={GOLD}  change={net >= 0 ? '+8%' : '-3%'} changeUp={net >= 0} sub={net >= 0 ? 'profit this period' : 'loss recorded'} />
-            <StatCard icon={Target}        label="Budget Used"    value={totalExp}       color={net >= 0 ? GOLD : RED} sub={`${spentPct}% of revenue spent`} />
+            <StatCard icon={TrendingUp}  label="Total Revenue"  value={revenue.total}     color={GREEN} change="+12%" changeUp   sub="memberships + others"                          visible={amountsVisible} />
+            <StatCard icon={TrendingDown} label="Total Expenses" value={totalExp}          color={RED}   change="-5%"  changeUp={false} sub={`${expenses.length} transactions`}       visible={amountsVisible} />
+            <StatCard icon={DollarSign}   label="Net Profit"     value={Math.abs(net)}     color={GOLD}  change={net >= 0 ? '+8%' : '-3%'} changeUp={net >= 0} sub={net >= 0 ? 'profit this period' : 'loss recorded'} visible={amountsVisible} />
+            <StatCard icon={Target}       label="Budget Used"    value={totalExp}          color={net >= 0 ? GOLD : RED} sub={`${Mpct(spentPct)} of revenue spent`}                  visible={amountsVisible} />
           </div>
 
-          {/* MAIN GRID */}
+          {/* ══════════════════════════════════════════ MAIN GRID */}
           <div className="grid grid-cols-12 gap-6">
 
-            {/* LEFT (5 cols) */}
+            {/* LEFT */}
             <div className="col-span-12 xl:col-span-5 space-y-6">
 
               {/* Overview */}
@@ -580,14 +666,14 @@ const AdminExpenses = ({ onLogout }) => {
                     </div>
                   </div>
 
-                  {/* Revenue */}
+                  {/* Revenue bar */}
                   <div className="mb-5">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                         <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.12em] uppercase font-semibold">Revenue</span>
                       </div>
-                      <span className="font-orbitron text-green-400 text-[14px] font-bold">{fmt(revenue.total)}</span>
+                      <span className="font-orbitron text-green-400 text-[14px] font-bold">{M(revenue.total)}</span>
                     </div>
                     <div className="h-2.5 bg-white/[0.05] rounded-full overflow-hidden">
                       <div className="h-full rounded-full"
@@ -595,14 +681,14 @@ const AdminExpenses = ({ onLogout }) => {
                     </div>
                   </div>
 
-                  {/* Expenses */}
+                  {/* Expenses bar */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
                         <span className="font-rajdhani text-zinc-400 text-[11px] tracking-[0.12em] uppercase font-semibold">Expenses</span>
                       </div>
-                      <span className="font-orbitron text-red-400 text-[14px] font-bold">{fmt(totalExp)}</span>
+                      <span className="font-orbitron text-red-400 text-[14px] font-bold">{M(totalExp)}</span>
                     </div>
                     <div className="h-2.5 bg-white/[0.05] rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-1000"
@@ -626,11 +712,15 @@ const AdminExpenses = ({ onLogout }) => {
                       <div>
                         <p className="font-orbitron font-bold text-[12px] tracking-[0.12em]"
                           style={{ color: net >= 0 ? GOLD : RED }}>NET {net >= 0 ? 'PROFIT' : 'LOSS'}</p>
-                        <p className="font-rajdhani text-zinc-600 text-[10px] tracking-wider">{100 - spentPct}% margin</p>
+                        <p className="font-rajdhani text-zinc-600 text-[10px] tracking-wider">
+                          {amountsVisible ? `${100 - spentPct}% margin` : '••% margin'}
+                        </p>
                       </div>
                     </div>
                     <span className="font-orbitron font-extralight text-[26px] leading-none"
-                      style={{ color: net >= 0 ? GOLD : RED }}>{fmt(Math.abs(net))}</span>
+                      style={{ color: net >= 0 ? GOLD : RED }}>
+                      {M(Math.abs(net))}
+                    </span>
                   </div>
                 </div>
               </GlassPanel>
@@ -647,7 +737,7 @@ const AdminExpenses = ({ onLogout }) => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     {[
-                      { icon: Wallet, label: 'CASH', value: cash.cash, pct: Math.round((cash.cash / (cash.cash + cash.online)) * 100) },
+                      { icon: Wallet,     label: 'CASH',   value: cash.cash,   pct: Math.round((cash.cash / (cash.cash + cash.online)) * 100) },
                       { icon: CreditCard, label: 'ONLINE', value: cash.online, pct: Math.round((cash.online / (cash.cash + cash.online)) * 100) },
                     ].map(item => (
                       <div key={item.label} className="group rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02]"
@@ -657,12 +747,16 @@ const AdminExpenses = ({ onLogout }) => {
                           <item.icon size={16} color={GOLD} />
                         </div>
                         <p className="font-rajdhani font-bold text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: `${GOLD}80` }}>{item.label}</p>
-                        <p className="font-orbitron text-white font-bold text-[20px] mb-3">{fmt(item.value)}</p>
+                        <p className="font-orbitron text-white font-bold text-[20px] mb-3">
+                          {M(item.value)}
+                        </p>
                         <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
                           <div className="h-full rounded-full transition-all duration-1000"
                             style={{ width: `${item.pct}%`, background: `linear-gradient(90deg,${GOLD},${GOLD_L})`, boxShadow: '0 0 8px rgba(197,160,89,0.30)' }} />
                         </div>
-                        <p className="font-orbitron text-[10px] font-bold mt-2" style={{ color: `${GOLD}80` }}>{item.pct}%</p>
+                        <p className="font-orbitron text-[10px] font-bold mt-2" style={{ color: `${GOLD}80` }}>
+                          {Mpct(item.pct)}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -682,11 +776,13 @@ const AdminExpenses = ({ onLogout }) => {
                         <p className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.15em] uppercase">Income sources</p>
                       </div>
                     </div>
-                    <span className="font-orbitron font-extralight text-[24px]" style={{ color: GOLD }}>{fmt(revenue.total)}</span>
+                    <span className="font-orbitron font-extralight text-[24px]" style={{ color: GOLD }}>
+                      {M(revenue.total)}
+                    </span>
                   </div>
                   {[
                     { label: 'Memberships', value: revenue.memberships, icon: CreditCard },
-                    { label: 'Others', value: revenue.others, icon: Receipt },
+                    { label: 'Others',      value: revenue.others,      icon: Receipt },
                   ].map((item, i) => {
                     const pct = Math.round((item.value / revenue.total) * 100);
                     return (
@@ -704,8 +800,8 @@ const AdminExpenses = ({ onLogout }) => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="font-orbitron text-white text-[14px] font-bold block">{fmt(item.value)}</span>
-                          <span className="font-orbitron text-[10px] font-bold" style={{ color: `${GOLD}80` }}>{pct}%</span>
+                          <span className="font-orbitron text-white text-[14px] font-bold block">{M(item.value)}</span>
+                          <span className="font-orbitron text-[10px] font-bold" style={{ color: `${GOLD}80` }}>{Mpct(pct)}</span>
                         </div>
                       </div>
                     );
@@ -714,10 +810,10 @@ const AdminExpenses = ({ onLogout }) => {
               </GlassPanel>
             </div>
 
-            {/* RIGHT (7 cols) */}
+            {/* RIGHT */}
             <div className="col-span-12 xl:col-span-7 space-y-6">
 
-              {/* Categories */}
+              {/* Expense Breakdown */}
               <GlassPanel borderColor="rgba(239,68,68,0.15)" glow="rgba(239,68,68,0.04)">
                 <div className="p-8">
                   <div className="flex items-center justify-between mb-6">
@@ -728,7 +824,7 @@ const AdminExpenses = ({ onLogout }) => {
                         <p className="font-rajdhani text-zinc-500 text-[11px] tracking-[0.15em] uppercase">By category</p>
                       </div>
                     </div>
-                    <span className="font-orbitron text-red-400 font-extralight text-[22px]">{fmt(totalExp)}</span>
+                    <span className="font-orbitron text-red-400 font-extralight text-[22px]">{M(totalExp)}</span>
                   </div>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {catTotals.map(cat => {
@@ -748,9 +844,14 @@ const AdminExpenses = ({ onLogout }) => {
                               style={{ background: active ? 'rgba(197,160,89,0.18)' : 'rgba(197,160,89,0.08)' }}>
                               <CatIcon size={14} color={active ? GOLD : `${GOLD}70`} />
                             </div>
-                            <span className="font-orbitron text-[9px] font-bold" style={{ color: active ? GOLD : '#52525B' }}>{pct}%</span>
+                            <span className="font-orbitron text-[9px] font-bold" style={{ color: active ? GOLD : '#52525B' }}>
+                              {Mpct(pct)}
+                            </span>
                           </div>
-                          <p className="font-orbitron text-white font-bold text-[14px] mb-1 truncate">{fmt(cat.total)}</p>
+                          {/* Category card amount */}
+                          <p className="font-orbitron text-white font-bold text-[14px] mb-1 truncate">
+                            {M(cat.total)}
+                          </p>
                           <p className="font-rajdhani text-[9px] tracking-[0.12em] uppercase font-semibold mb-3 truncate"
                             style={{ color: active ? `${GOLD}BB` : '#52525B' }}>{cat.label}</p>
                           <div className="h-[2px] bg-white/[0.05] rounded-full overflow-hidden">
@@ -815,7 +916,14 @@ const AdminExpenses = ({ onLogout }) => {
                       </p>
                     </div>
                   ) : (
-                    filtered.map(exp => <ExpenseRow key={exp.id} expense={exp} onDelete={handleDelete} />)
+                    filtered.map(exp => (
+                      <ExpenseRow
+                        key={exp.id}
+                        expense={exp}
+                        onDelete={handleDelete}
+                        visible={amountsVisible}
+                      />
+                    ))
                   )}
                 </div>
 
@@ -832,7 +940,7 @@ const AdminExpenses = ({ onLogout }) => {
                           {activeFilter !== 'all' ? `${getCat(activeFilter).label} Total` : 'Filtered Total'}
                         </p>
                         <p className="font-orbitron font-bold text-[18px]" style={{ color: RED }}>
-                          {fmt(filtered.reduce((s, e) => s + e.amount, 0))}
+                          {M(filtered.reduce((s, e) => s + e.amount, 0))}
                         </p>
                       </div>
                     </div>
@@ -851,7 +959,6 @@ const AdminExpenses = ({ onLogout }) => {
         </div>
       </div>
 
-      {/* ✅ Modal renders via portal — always above everything */}
       {showModal && (
         <AddExpenseModal
           onClose={() => setShowModal(false)}
